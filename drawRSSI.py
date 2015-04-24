@@ -8,18 +8,19 @@
 # csv FORMAT: EPCValue,TimeStamp,RunNum,RSSI,Reader,Frequency,Power,Antenna
 
 import sys
+import os
 import csv
-import xlrd
+# import xlrd
 import codecs
 import numpy as np
 import matplotlib.pyplot as plt
-
+import timeConvert
 
 class Packet(object):
 	def __init__(self, EPC, TimeStamp, RSSI, Antenna):
 		self.EPC = EPC
 		self.TimeStamp = TimeStamp	# value
-		self.RSSI = RSSI			# value
+		self.RSSI = RSSI		# value
 		self.Antenna = Antenna
 	def __eq__(self, other):
 		return id(self) == id(other)
@@ -50,30 +51,30 @@ def loadCsvFile(fpath):
 			continue
 		
 		if line.startswith(codecs.BOM_UTF8):
-			line = line[3:]				# drop '\xef\xbb\xbf'
-		line = line[:len(line) - 2]		# drop '\r\n'
+			line = line[3:]			# drop '\xef\xbb\xbf'
+		line = line[:len(line) - 2]	# drop '\r\n'
 		info = line.split(',')
 		if i == 6:
 			ground_truth = float(info[1])# timestamp ground truth
-		epc = str(info[0])				# get the last 4 bit to represent EPC
+		epc = str(info[0])			# get the last 4 bit to represent EPC
 		packet = Packet(epc[-4:], float(info[1])-ground_truth, int(info[3]), info[7])
 		
 		# split data and save in the dictionary
-		if packet.EPC in data:			# add into dict
+		if packet.EPC in data:		# add into dict
 			if packet.Antenna in data[packet.EPC]:
 				data[packet.EPC][packet.Antenna].x.append(packet.TimeStamp)
 				data[packet.EPC][packet.Antenna].y.append(packet.RSSI)
-			else:						# create new pixel object
-				x1, y1 = [], []
-				x1.append(packet.TimeStamp)
-				y1.append(packet.RSSI)
-				pixel_1 = Pixel(x1, y1)
-				data[packet.EPC][packet.Antenna] = pixel_1			
-		else:							# create new Antenna dict
-			x2, y2 = [], []
-			x2.append(packet.TimeStamp)
-			y2.append(packet.RSSI)	
-			pixel = Pixel(x2, y2)		# create new pixel object
+			else:				# create new pixel object
+				x, y = [], []
+				x.append(packet.TimeStamp)
+				y.append(packet.RSSI)
+				pixel = Pixel(x, y)
+				data[packet.EPC][packet.Antenna] = pixel			
+		else:					# create new Antenna dict
+			x, y = [], []
+			x.append(packet.TimeStamp)
+			y.append(packet.RSSI)	
+			pixel = Pixel(x, y)		# create new pixel object
 			struct_pixel = {}
 			struct_pixel.setdefault(packet.Antenna, pixel) # according to the antenna no
 			data[packet.EPC] = struct_pixel	# according to the EPC
@@ -100,40 +101,64 @@ def save(data, fpath):
 
 
 
-def plotLine(packet, COLOR, STYLE):
-	LABEL = str(packet.EPC) + '-' + str(packet.Antenna)
-	plt.plot(packet.TimeStamp, packet.RSSI, color=COLOR, linewidth=2.5, linestyle=STYLE, label=LABEL)
-
-
-
-def plotRSSI(data, epc, antenna, COLOR, STYLE):
+def plotline(data, epc, antenna, COLOR, STYLE, MARKER):
 	x = data[epc][antenna].x
 	y = data[epc][antenna].y
-	tendency = Packet(epc, x, y, antenna)
-	
-	plotLine(tendency, COLOR, STYLE)
+	LABEL = epc + '-' + antenna
+	plt.plot(x, y, color=COLOR, linewidth=1, linestyle=STYLE, marker=MARKER, label=LABEL)
 
+
+
+def plotEachRSSI(data, filename, fpath):
+	for epc in data:
+		print '\tploting... %s' % epc
+		plt.clf()
+		plt.title(filename + '----' + epc)
+		for antenna in data[epc]:
+			if antenna == '1':
+				plotline(data, epc, antenna, 'r', '-', 'o')
+			else: # antenna == '2'
+				plotline(data, epc, antenna, 'b', '-', 'x')
+		
+		plt.xlabel(u'TimeStamp')
+		plt.ylabel(u'RSSI')
+		plt.legend(loc='lower right')
+		fdstpath = fpath + epc + '.png'
+		plt.savefig(fdstpath, format='png')
+		print '\tsaving...\t %s' % fdstpath
+	print '\tcomplete!'
 
 
 
 def main():
-	fsrc = "/home/marinyoung/Documents/TH_1.csv"
-	fdst = "/home/marinyoung/Documents/out_NEW.xls"
-	tag = {'A1':'42z0', 'A2':'27b0', 'A3':'46fe', 'A4':'27ae', 'A5':'53a0',\
-		   'B1':'3ac5', 'B2':'0004', 'B3':'4029', 'B4':'36d4', 'B5':'0007',\
-		   'C1':'4f5d', 'C2':'539d', 'C3':'3acb', 'C4':'32f0', 'C5':'4f60',\
-		   'D1':'36d1', 'D2':'57e5', 'D3':'2416', 'D4':'2f1b', 'D5':'4700'}
-	
-	data = loadCsvFile(fsrc)
-	
-	save(data, fdst)
-	plotRSSI(data, '3ac8', '1', 'r', '-')
-	plotRSSI(data, '3ac8', '2', 'b', '-')
+	fpath = "/media/marinyoung/Elements/"
+	fdstpath = "/home/marinyoung/Documents/figure/"
 
-	plt.xlabel(u'TimeStamp')
-	plt.ylabel(u'RSSI')
-	plt.legend(loc='lower right')
-	plt.show()
+	tag = {'A1':'42z0', 'A2':'27b0', 'A3':'46fe', 'A4':'27ae', 'A5':'53a0',\
+	       'B1':'3ac5', 'B2':'0004', 'B3':'4029', 'B4':'36d4', 'B5':'0007',\
+	       'C1':'4f5d', 'C2':'539d', 'C3':'3acb', 'C4':'32f0', 'C5':'4f60',\
+	       'D1':'36d1', 'D2':'57e5', 'D3':'2416', 'D4':'2f1b', 'D5':'4700'}
+	
+	files = os.listdir(fpath)
+	for filename in files:
+		portion = os.path.splitext(filename)
+		fdst = ''
+		if portion[1] == '.csv':
+			fsrc = fpath + filename
+			data = loadCsvFile(fsrc)
+			
+			fdst = fpath + portion[0] + '.xls'
+			print 'saving...\t %s' % fdst
+			save(data, fdst)
+			
+			print 'ploting FILE %s...' % filename
+			fdst = fdstpath + portion[0]
+			if not os.path.exists(fdst):
+				os.mkdir(fdstpath + portion[0])
+			plotEachRSSI(data, portion[0], fdst)
+			
+	print 'Done!'
+
 
 
 
