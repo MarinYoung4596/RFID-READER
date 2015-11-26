@@ -1,0 +1,34 @@
+<?xml version="1.0"?>
+<ADD_ROSPEC
+   xmlns="http://www.llrp.org/ltk/schema/core/encoding/xml/1.0"
+   xmlns:llrp="http://www.llrp.org/ltk/schema/core/encoding/xml/1.0"
+   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"  
+   xmlns:Impinj="http://developer.impinj.com/ltk/schema/encoding/xml/1.18"
+  xsi:schemaLocation="http://www.llrp.org/ltk/schema/core/encoding/xml/1.0 http://www.llrp.org/ltk/schema/core/encoding/xml/1.0/llrp.xsd http://developer.impinj.com/ltk/schema/encoding/xml/1.18 http://developer.impinj.com/ltk/schema/encoding/xml/1.18/impinj.xsd" 
+ MessageID="0">
+ <ROSpec>
+     <ROSpecID>1111</ROSpecID>
+     <Priority>0</Priority>
+     <CurrentState>Enabled</CurrentState> <!-- disabled -->
+     <ROBoundarySpec>
+         <ROSpecStartTrigger>
+             <ROSpecStartTriggerType>Null</ROSpecStartTriggerType>
+         </ROSpecStartTrigger>
+         <ROSpecStopTrigger>
+             <ROSpecStopTriggerType>Null</ROSpecStopTriggerType>
+             <DurationTriggerValue>0</DurationTriggerValue>
+         </ROSpecStopTrigger>
+     </ROBoundarySpec>
+     <AISpec>
+         <AntennaIDs>1</AntennaIDs>
+         <AISpecStopTrigger>
+             <AISpecStopTriggerType>Null</AISpecStopTriggerType>
+             <DurationTrigger>0</DurationTrigger>
+         </AISpecStopTrigger>
+         <InventoryParameterSpec>
+             <InventoryParameterSpecID>1234</InventoryParameterSpecID>
+             <ProtocolID>EPCGlobalClass1Gen2</ProtocolID>
+         </InventoryParameterSpec>
+     </AISpec>
+ </ROSpec>
+</ADD_ROSPEC>
