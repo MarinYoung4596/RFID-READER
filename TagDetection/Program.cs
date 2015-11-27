@@ -20,9 +20,9 @@ using System.Data;
 using Org.LLRP.LTK.LLRPV1;
 using Org.LLRP.LTK.LLRPV1.Impinj;
 using Org.LLRP.LTK.LLRPV1.DataType;
-
 using log4net;
 
+using SimpleLLRPSample;
 
 namespace SimpleLLRPSample
 {
@@ -51,7 +51,7 @@ namespace SimpleLLRPSample
 
         private static double filteredVelocity;
 
-        // use this factor to reduce computation overload
+        // use these factors to reduce computation overload
         // convert rf-phase ([0, 4096]) to phase-angle (Radian, [0, 2*pi]), namely res = (currentRfPhase / 4096) * 2 * Math.PI
         private static double convert2radian = 2 * Math.PI / 4096.0;
         // convert rf-phase ([0, 4096]) to phase (degree, [0, 360]), namely res = (currentRfPhase / 4096) * 360;
@@ -59,32 +59,32 @@ namespace SimpleLLRPSample
 
 
         public static DataTable data;
-		public static LLRPClient reader;
-        
+        public static LLRPClient reader;
+        public static Reader.ReaderParameters reader_para;
 
 
         #region Saving Data
         public static void InitializeDataRow()
         {
-            // 创建表中的列. 决定各参数在csv中的先后次序
+            // Create columns in data table
             data.Columns.Add("EPC");
             data.Columns.Add("Time");
             data.Columns.Add("Antenna");
-            //data.Columns.Add("Tx Power");
-            //data.Columns.Add("Current Frequency");
+            data.Columns.Add("Tx Power");
+            data.Columns.Add("Current Frequency");
             data.Columns.Add("PeakRSSI");
             data.Columns.Add("Phase Angle");
             data.Columns.Add("Phase");
             data.Columns.Add("Doppler Shift");
             data.Columns.Add("Velocity");
 
-            // 初始化列名
+            // Initialize Column Name
             DataRow row = data.NewRow();
             row["EPC"] = "EPC";
             row["Time"] = "Time";
             row["Antenna"] = "Antenna";
-            //row["Tx Power"] = "TxPower";
-            //row["Current Frequency"] = "Frequency(MHz)";
+            row["Tx Power"] = "TxPower";
+            row["Current Frequency"] = "Frequency(MHz)";
             row["PeakRSSI"] = "RSS(dbm)";
             row["Phase Angle"] = "PhaseAngle(Radian)";
             row["Phase"] = "PhaseAngle(Degree)";
@@ -101,8 +101,10 @@ namespace SimpleLLRPSample
             row["EPC"] = currentEpcData;
             row["Time"] = currentReadTime;
             row["Antenna"] = currentAntennaID;
-            //row["Tx Power"] = txPowerValue;
-            //row["Current Frequency"] = tag.ChannelInMhz.ToString();
+            // !!!
+            row["TX Power"] = (ushort)(61 - reader_para.Attenuation * 4);
+            // [920.63 : 0.25 : 924.38], 16 different channels
+            row["Current Frequency"] = 920.63 + (reader_para.ChannelIndex - 1) * 0.25; 
             row["PeakRSSI"] = currentPeakRSSI / 100;
             row["Phase Angle"] = currentRfPhase * convert2radian;   //(currentRfPhase / 4096) * 2 * Math.PI;
             row["Phase"] = currentRfPhase * convert2degree;         //(currentRfPhase / 4096) * 360;
@@ -157,7 +159,7 @@ namespace SimpleLLRPSample
                         currentAntennaID = msg.TagReportData[i].AntennaID.AntennaID;
                         data += " ant: " + currentAntennaID.ToString();
                     }
-                    
+
                     if (msg.TagReportData[i].ChannelIndex != null)
                     {
                         currentChannelIndex = msg.TagReportData[i].ChannelIndex.ChannelIndex;
@@ -219,8 +221,9 @@ namespace SimpleLLRPSample
 
                     Console.WriteLine(data);
                     //Console.WriteLine(velData);
-                }
-            }
+
+                } // end for
+            } // end if 
         }
 
         public static bool calculateVelocity(out double velocity)
@@ -445,7 +448,7 @@ namespace SimpleLLRPSample
             msg.ROSpec.SpecParameter.Add(aiSpec);
 
             // create a new ROReportSpec
-			// N: Unsigned Short Integer. This is the number of TagReportData Parameters used in ROReportTrigger = 1 and 2.
+            // N: Unsigned Short Integer. This is the number of TagReportData Parameters used in ROReportTrigger = 1 and 2.
             // If N = 0, there is no limit on the number of TagReportData Parameters. 
             // This field SHALL be ignored when ROReportTrigger = 0.
             msg.ROSpec.ROReportSpec = new PARAM_ROReportSpec();
@@ -464,8 +467,8 @@ namespace SimpleLLRPSample
             msg.ROSpec.ROReportSpec.TagReportContentSelector.EnableROSpecID = true;
             msg.ROSpec.ROReportSpec.TagReportContentSelector.EnableSpecIndex = true;
             msg.ROSpec.ROReportSpec.TagReportContentSelector.EnableTagSeenCount = true;
-			
-			
+
+
             // Add 1)RF Phase Angle;  2)Peak RSSI  3)RF Doppler Frequency  fields to the report
             PARAM_ImpinjTagReportContentSelector contentSelector = new PARAM_ImpinjTagReportContentSelector();
             contentSelector.ImpinjEnableSerializedTID = new PARAM_ImpinjEnableSerializedTID();
@@ -664,13 +667,13 @@ namespace SimpleLLRPSample
                 return;
             }
         }
-		
-		
-		public static void Get_RoSpec()
-		{
+
+
+        public static void Get_RoSpec()
+        {
             Console.Write("Getting RoSpec ----- ");
             MSG_GET_ROSPECS msg = new MSG_GET_ROSPECS();
-			MSG_ERROR_MESSAGE msg_err;
+            MSG_ERROR_MESSAGE msg_err;
             MSG_GET_ROSPECS_RESPONSE rsp = reader.GET_ROSPECS(msg, out msg_err, 3000);
             if (rsp != null)
             {
@@ -692,7 +695,7 @@ namespace SimpleLLRPSample
                 Console.WriteLine("GET_ROSPEC Command Timed out\n");
                 reader.Close();
             }
-		}
+        }
         #endregion
 
 
@@ -759,36 +762,49 @@ namespace SimpleLLRPSample
         public static void SetReaderConfig()
         {
             Console.Write("Set Reader Configuration ----- ");
+
+            byte numAntennaToSet = 0;
+            ushort antennaSet = 0;
+            for (int i = 0; i < reader_para.AntennaID.Length; ++i)
+            {
+                if (reader_para.AntennaID[i] == true)
+                {
+                    antennaSet = (ushort)i;
+                    ++numAntennaToSet;
+                }
+            }
+
             MSG_SET_READER_CONFIG msg = new MSG_SET_READER_CONFIG();
             msg.AccessReportSpec = new PARAM_AccessReportSpec();
             msg.AccessReportSpec.AccessReportTrigger = ENUM_AccessReportTriggerType.End_Of_AccessSpec;
 
             PARAM_C1G2InventoryCommand cmd = new PARAM_C1G2InventoryCommand();
             cmd.C1G2RFControl = new PARAM_C1G2RFControl();
-            cmd.C1G2RFControl.ModeIndex = 1000;
+            cmd.C1G2RFControl.ModeIndex = reader_para.ModeIndex;
             cmd.C1G2RFControl.Tari = 0;
             cmd.C1G2SingulationControl = new PARAM_C1G2SingulationControl();
             cmd.C1G2SingulationControl.Session = new TwoBits(0);
-            cmd.C1G2SingulationControl.TagPopulation = 32;
-            cmd.C1G2SingulationControl.TagTransitTime = 0;
+            cmd.C1G2SingulationControl.TagPopulation = reader_para.TagPopulation;
+            cmd.C1G2SingulationControl.TagTransitTime = reader_para.TagTransitTime;
             cmd.TagInventoryStateAware = false;
 
-            UInt16 AntennaID = 0;       // Temporary, not compatible for multi-antenna
-            ushort attenuation = 1;
+            msg.AntennaConfiguration = new PARAM_AntennaConfiguration[numAntennaToSet];
+            for (ushort i = 0; i < numAntennaToSet; ++i)
+            {
+                msg.AntennaConfiguration[i] = new PARAM_AntennaConfiguration();
+                msg.AntennaConfiguration[i].AirProtocolInventoryCommandSettings = new UNION_AirProtocolInventoryCommandSettings();
+                msg.AntennaConfiguration[i].AirProtocolInventoryCommandSettings.Add(cmd);
+                msg.AntennaConfiguration[i].AntennaID = antennaSet;
+                msg.AntennaConfiguration[i].RFReceiver = new PARAM_RFReceiver();
+                msg.AntennaConfiguration[i].RFReceiver.ReceiverSensitivity = reader_para.ReaderSensitivity;
+                msg.AntennaConfiguration[i].RFTransmitter = new PARAM_RFTransmitter();
+                msg.AntennaConfiguration[i].RFTransmitter.ChannelIndex = reader_para.ChannelIndex;
+                msg.AntennaConfiguration[i].RFTransmitter.HopTableID = reader_para.HopTableIndex;
+                msg.AntennaConfiguration[i].RFTransmitter.TransmitPower = (ushort)(61 - reader_para.Attenuation * 4);
+            }
 
-            msg.AntennaConfiguration = new PARAM_AntennaConfiguration[1];
-            msg.AntennaConfiguration[AntennaID] = new PARAM_AntennaConfiguration();
-            msg.AntennaConfiguration[AntennaID].AirProtocolInventoryCommandSettings = new UNION_AirProtocolInventoryCommandSettings();
-            msg.AntennaConfiguration[AntennaID].AirProtocolInventoryCommandSettings.Add(cmd);
-            msg.AntennaConfiguration[AntennaID].AntennaID = AntennaID;
-            //msg.AntennaConfiguration[AntennaID].RFReceiver = new PARAM_RFReceiver();
-            //msg.AntennaConfiguration[AntennaID].RFReceiver.ReceiverSensitivity = PARAM_PerAntennaReceiveSensitivityRange.ReferenceEquals;
-            //msg.AntennaConfiguration[AntennaID].RFTransmitter = new PARAM_RFTransmitter();
-            //msg.AntennaConfiguration[AntennaID].RFTransmitter.ChannelIndex = 1;
-            //msg.AntennaConfiguration[AntennaID].RFTransmitter.HopTableID = PARAM_FrequencyHopTable.ReferenceEquals;
-            //msg.AntennaConfiguration[AntennaID].RFTransmitter.TransmitPower = (ushort)(61 - attenuation * 4);
 
-            // NOT SUPPORTED WITH AntennaProperties
+            // NOT SUPPORT FOR AntennaProperties
             //msg.AntennaProperties = new PARAM_AntennaProperties[1];
             //msg.AntennaProperties[0] = new PARAM_AntennaProperties();
             //msg.AntennaProperties[0].AntennaConnected = true;
@@ -800,7 +816,7 @@ namespace SimpleLLRPSample
 
             msg.KeepaliveSpec = new PARAM_KeepaliveSpec();
             msg.KeepaliveSpec.KeepaliveTriggerType = ENUM_KeepaliveTriggerType.Null;
-            //msg.KeepaliveSpec.PeriodicTriggerValue = readerconfig.periodicTriggerValue;
+            msg.KeepaliveSpec.PeriodicTriggerValue = reader_para.PeriodicTriggerValue;
 
             msg.ReaderEventNotificationSpec = new PARAM_ReaderEventNotificationSpec();
             msg.ReaderEventNotificationSpec.EventNotificationState = new PARAM_EventNotificationState[5];
@@ -825,7 +841,7 @@ namespace SimpleLLRPSample
             msg.ROReportSpec.ROReportTrigger = ENUM_ROReportTriggerType.Upon_N_Tags_Or_End_Of_AISpec;
             msg.ROReportSpec.TagReportContentSelector = new PARAM_TagReportContentSelector();
             msg.ROReportSpec.TagReportContentSelector.AirProtocolEPCMemorySelector = new UNION_AirProtocolEPCMemorySelector();
-            
+
             PARAM_C1G2EPCMemorySelector c1g2mem = new PARAM_C1G2EPCMemorySelector();
             c1g2mem.EnableCRC = false;
             c1g2mem.EnablePCBits = false;
@@ -833,7 +849,7 @@ namespace SimpleLLRPSample
 
             msg.ROReportSpec.TagReportContentSelector.EnableAccessSpecID = false;
             msg.ROReportSpec.TagReportContentSelector.EnableAntennaID = true;
-            msg.ROReportSpec.TagReportContentSelector.EnableChannelIndex = false;
+            msg.ROReportSpec.TagReportContentSelector.EnableChannelIndex = true;
             msg.ROReportSpec.TagReportContentSelector.EnableFirstSeenTimestamp = true;
             msg.ROReportSpec.TagReportContentSelector.EnableInventoryParameterSpecID = false;
             msg.ROReportSpec.TagReportContentSelector.EnableLastSeenTimestamp = false;
@@ -843,7 +859,7 @@ namespace SimpleLLRPSample
             msg.ROReportSpec.TagReportContentSelector.EnableTagSeenCount = true;
 
             msg.ResetToFactoryDefault = false;
-            
+
             MSG_ERROR_MESSAGE msg_err;
             MSG_SET_READER_CONFIG_RESPONSE rsp = reader.SET_READER_CONFIG(msg, out msg_err, 12000);
             if (rsp != null)
@@ -958,8 +974,8 @@ namespace SimpleLLRPSample
                 reader.Close();
             }
         }
-        
-        
+
+
         public static void GetReaderConfig()
         {
             Console.Write("Get Reader Config ----- ");
@@ -991,7 +1007,6 @@ namespace SimpleLLRPSample
                 reader.Close();
             }
         }
-        #endregion
 
 
         public static void ConnectTo(string ip)
@@ -1025,12 +1040,32 @@ namespace SimpleLLRPSample
 
         public static void reader_CleanSubscription()
         {
-			Console.WriteLine("Closing...\n");
+            Console.WriteLine("Closing...\n");
             reader.Close();
             reader.OnReaderEventNotification -= new delegateReaderEventNotification(reader_OnReaderEventNotification);
             reader.OnRoAccessReportReceived -= new delegateRoAccessReport(reader_OnRoAccessReportReceived);
         }
 
+
+        public static void setReader_PARM()
+        {
+            /*
+             * Set Channel Index, which represents frequency (MHz). Namely,
+             * 1: 920.63; 2: 920.88; ...... ; 16: 924.38
+             */
+            reader_para.ChannelIndex = 1;
+            reader_para.Attenuation = 0;
+            reader_para.ModeIndex = 1000;
+            reader_para.HopTableIndex = 0;
+            reader_para.PeriodicTriggerValue = 0;
+            reader_para.TagPopulation = 32;
+            reader_para.TagTransitTime = 0;
+            reader_para.ReaderSensitivity = 1;
+            // each value in the array map to Antenna 1, Antenna 2, Antenna 3, Antenna 4, respectively.
+            reader_para.AntennaID = new bool[] { true, false, false, false };
+        }
+
+        #endregion
 
         public static void InitializeConfiguration()
         {
@@ -1040,16 +1075,19 @@ namespace SimpleLLRPSample
             reader = new LLRPClient();
             // Create an DataTable to save the current state of Tag
             data = new DataTable();
+            // Set Reader Config in Default Way.
+            reader_para = new Reader.ReaderParameters();
 
             //Impinj Best Practice! Always Install the Impinj extensions
             Impinj_Installer.Install();
         }
 
 
+
         public static void Main()
         {
             string IPAddress = "192.168.1.222";
-            string fpath = @"C:\Users\MY\Desktop\LTK_.NET_10_20_0\libltknet\DocSample4\bin\Debug\log\";
+            string fpath = @"C:\Users\MY\Desktop\";
             if (!Directory.Exists(fpath))
                 Directory.CreateDirectory(fpath);
 
@@ -1058,12 +1096,13 @@ namespace SimpleLLRPSample
             string fname = strCurrentTime + ".csv";
 
             // set data collection time (s)
-            UInt16 sustainTime = 10;
+            UInt16 sustainTime = 30;
 
             Console.WriteLine("Impinj C# LTK.NET RFID Application DocSample4 reader ----- " + IPAddress + "\n");
 
             InitializeConfiguration();
             InitializeDataRow();
+            setReader_PARM();
             ConnectTo(IPAddress);
 
             //subscribe to client event notification and ro access report
