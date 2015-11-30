@@ -1,3 +1,8 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Count the number of zero bits and one bits
+% in the Miller-4 coding sequence.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 function [data_zero, data_one] = count(str)
 
 %%%%% hexdecimal to binary
