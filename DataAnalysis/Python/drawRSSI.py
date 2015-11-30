@@ -17,11 +17,12 @@ import matplotlib.pyplot as plt
 import timeConvert
 
 class Packet(object):
-	def __init__(self, EPC, TimeStamp, RSSI, Antenna):
+	def __init__(self, EPC, TimeStamp, Antenna, Phase):
 		self.EPC = EPC
 		self.TimeStamp = TimeStamp	# value
-		self.RSSI = RSSI		# value
 		self.Antenna = Antenna
+#		self.RSSI = RSSI		# value
+		self.Phase = Phase              # value
 	def __eq__(self, other):
 		return id(self) == id(other)
 	def __ne__(self, other):
@@ -33,50 +34,50 @@ class Packet(object):
 class Pixel(object):
 	def __init__(self, x, y):
 		self.x = x		# x = [TimeStamp]
-		self.y = y		# y = [RSSI]
+		self.y = y		# y = [...]
 
 
 def loadCsvFile(fpath):
 	data = {}
-	# data = {EPC1: {Antenna 1: ([TimeStamp], [RSSI]),
-	#				 Antenna 2: ([TimeStamp), [RSSI]) },
-	#		  EPC2: {Antenna 1: ([TimeStamp], [RSSI]),
-	#				 Antenna 2: ([TimeStamp], [RSSI]) },
-	#		  ...... }
+	# data = {EPC1: {Antenna 1: ([TimeStamp], [Phase]),
+	#		 Antenna 2: ([TimeStamp), [Phase]) },
+	#	  EPC2: {Antenna 1: ([TimeStamp], [Phase]),
+	#		 Antenna 2: ([TimeStamp], [Phase]) },
+	#	  ...... }
 	f = open(fpath, 'r')
 	i = 0
 	for line in f:
 		i += 1
-		if i <= 5:
+		if i <= 1:
 			continue
 		
 		if line.startswith(codecs.BOM_UTF8):
 			line = line[3:]			# drop '\xef\xbb\xbf'
-		line = line[:len(line) - 2]	# drop '\r\n'
+		line = line[:len(line) - 2]	        # drop '\r\n'
 		info = line.split(',')
-		if i == 6:
-			ground_truth = float(info[1])# timestamp ground truth
-		epc = str(info[0])			# get the last 4 bit to represent EPC
-		packet = Packet(epc[-4:], float(info[1])-ground_truth, int(info[3]), info[7])
+		if i == 2:
+                    ground_truth = int(info[1][1:-1])   # timestamp ground truth
+                epc = str(info[0])[1:-1]		# get the last 4 bit to represent EPC
+                packet = Packet(epc[-4:], (int(info[1][1:-1]) - ground_truth), info[2], float(info[7][1:-1]) )
 		
 		# split data and save in the dictionary
-		if packet.EPC in data:		# add into dict
+		if packet.EPC in data:  		# add into dict
 			if packet.Antenna in data[packet.EPC]:
 				data[packet.EPC][packet.Antenna].x.append(packet.TimeStamp)
-				data[packet.EPC][packet.Antenna].y.append(packet.RSSI)
+				data[packet.EPC][packet.Antenna].y.append(packet.Phase)
 			else:				# create new pixel object
 				x, y = [], []
 				x.append(packet.TimeStamp)
-				y.append(packet.RSSI)
+				y.append(packet.Phase)
 				pixel = Pixel(x, y)
 				data[packet.EPC][packet.Antenna] = pixel			
 		else:					# create new Antenna dict
 			x, y = [], []
 			x.append(packet.TimeStamp)
-			y.append(packet.RSSI)	
+			y.append(packet.Phase)	
 			pixel = Pixel(x, y)		# create new pixel object
 			struct_pixel = {}
-			struct_pixel.setdefault(packet.Antenna, pixel) # according to the antenna no
+			struct_pixel.setdefault(packet.Antenna, pixel) # according to the antenna number
 			data[packet.EPC] = struct_pixel	# according to the EPC
 	f.close()
 	return data
@@ -121,7 +122,7 @@ def plotEachRSSI(data, filename, fpath):
 				plotline(data, epc, antenna, 'b', '-', 'x')
 		
 		plt.xlabel(u'TimeStamp')
-		plt.ylabel(u'RSSI')
+		plt.ylabel(u'Phase')
 		plt.legend(loc='lower right')
 		fdstpath = fpath + epc + '.png'
 		plt.savefig(fdstpath, format='png')
@@ -131,7 +132,7 @@ def plotEachRSSI(data, filename, fpath):
 
 
 def main():
-	fpath = "/media/marinyoung/Elements/"
+	fpath = "/media/marinyoung/OS/Users/MY/Desktop/"
 	fdstpath = "/home/marinyoung/Documents/figure/"
 
 	tag = {'A1':'42z0', 'A2':'27b0', 'A3':'46fe', 'A4':'27ae', 'A5':'53a0',\
