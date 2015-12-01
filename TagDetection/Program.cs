@@ -1,6 +1,6 @@
 /*
  * TagDetection based on Impinj LLRP Tool Kit (LTK)
- * 
+ *
  * MarinYoung@163.com
  * Last Modified: 2015/11/26
  * Reference:
@@ -60,7 +60,8 @@ namespace SimpleLLRPSample
 
         public static DataTable data;
         public static LLRPClient reader;
-        public static Reader.ReaderParameters reader_para;
+        private static Reader.ReaderParameters reader_para;
+        private static HashSet<String> EPC_dictionary;
 
 
         #region Saving Data
@@ -81,7 +82,7 @@ namespace SimpleLLRPSample
             // Initialize Column Name
             DataRow row = data.NewRow();
             row["EPC"] = "EPC";
-            row["Time"] = "Time";
+            row["Time"] = "Timestamp";
             row["Antenna"] = "Antenna";
             row["Tx Power"] = "TxPower";
             row["Current Frequency"] = "Frequency(MHz)";
@@ -104,7 +105,7 @@ namespace SimpleLLRPSample
             // !!!
             row["TX Power"] = (ushort)(61 - reader_para.Attenuation * 4);
             // [920.63 : 0.25 : 924.38], 16 different channels
-            row["Current Frequency"] = 920.63 + (reader_para.ChannelIndex - 1) * 0.25; 
+            row["Current Frequency"] = 920.63 + (reader_para.ChannelIndex - 1) * 0.25;
             row["PeakRSSI"] = currentPeakRSSI / 100;
             row["Phase Angle"] = currentRfPhase * convert2radian;   //(currentRfPhase / 4096) * 2 * Math.PI;
             row["Phase"] = currentRfPhase * convert2degree;         //(currentRfPhase / 4096) * 360;
@@ -149,6 +150,9 @@ namespace SimpleLLRPSample
                         currentEpcData = ((PARAM_EPCData)(msg.TagReportData[i].EPCParameter[0])).EPC.ToHexString();
                         data += currentEpcData;
                     }
+
+                    if (!EPC_dictionary.Contains(currentEpcData))
+                        continue;
 
                     velData = data;
 
@@ -223,7 +227,7 @@ namespace SimpleLLRPSample
                     //Console.WriteLine(velData);
 
                 } // end for
-            } // end if 
+            } // end if
         }
 
         public static bool calculateVelocity(out double velocity)
@@ -233,7 +237,7 @@ namespace SimpleLLRPSample
 
             /* you have to have two samples from the same EPC on the same
              * antenna and channel.  NOTE: this is just a simple example.
-             * More sophisticated apps would create a database with 
+             * More sophisticated apps would create a database with
              * this information per-EPC */
             if ((lastEpcData == currentEpcData) &&
                 (lastAntennaID == currentAntennaID) &&
@@ -252,23 +256,23 @@ namespace SimpleLLRPSample
 
                 /* if our phase changes close to 180 degrees, you can see we
                 ** have an ambiguity of whether the phase advanced or retarded by
-                ** 180 degrees (or slightly over). There is no way to tell unless 
-                ** you use more advanced techniques with multiple channels.  So just 
+                ** 180 degrees (or slightly over). There is no way to tell unless
+                ** you use more advanced techniques with multiple channels.  So just
                 ** ignore any samples where phase change is > 90 */
                 if (Math.Abs((int)phaseChangeDegrees) <= 90)
                 {
                     /* We can divide these two to get degrees/usec, but it would be more
-                    ** convenient to have this in a common unit like meters/second.  
-                    ** Here's a straightforward conversion.  NOTE: to be exact here, we 
-                    ** should use the channel index to find the channel frequency/wavelength.  
-                    ** For now, I'll just assume the wavelength corresponds to mid-band at 
-                    ** 0.32786885245901635 meters. The formula below eports meters per second. 
-                    ** Note that 360 degrees equals only 1/2 a wavelength of motion because 
+                    ** convenient to have this in a common unit like meters/second.
+                    ** Here's a straightforward conversion.  NOTE: to be exact here, we
+                    ** should use the channel index to find the channel frequency/wavelength.
+                    ** For now, I'll just assume the wavelength corresponds to mid-band at
+                    ** 0.32786885245901635 meters. The formula below eports meters per second.
+                    ** Note that 360 degrees equals only 1/2 a wavelength of motion because
                     ** we are computing the round trip phase change.
                     **
-                    **  phaseChange (degrees)   1/2 wavelength     0.327 meter      1000000 usec 
-                    **  --------------------- * -------------- * ---------------- * ------------ 
-                    **  timeChange (usec)       360 degrees       1  wavelength      1 second   
+                    **  phaseChange (degrees)   1/2 wavelength     0.327 meter      1000000 usec
+                    **  --------------------- * -------------- * ---------------- * ------------
+                    **  timeChange (usec)       360 degrees       1  wavelength      1 second
                     **
                     ** which should net out to estimated tag velocity in meters/second */
 
@@ -449,7 +453,7 @@ namespace SimpleLLRPSample
 
             // create a new ROReportSpec
             // N: Unsigned Short Integer. This is the number of TagReportData Parameters used in ROReportTrigger = 1 and 2.
-            // If N = 0, there is no limit on the number of TagReportData Parameters. 
+            // If N = 0, there is no limit on the number of TagReportData Parameters.
             // This field SHALL be ignored when ROReportTrigger = 0.
             msg.ROSpec.ROReportSpec = new PARAM_ROReportSpec();
             // Send a report for every tag read
@@ -958,7 +962,7 @@ namespace SimpleLLRPSample
                 return;
             }
 
-            // Get the reader model number 
+            // Get the reader model number
             PARAM_GeneralDeviceCapabilities dev_cap = msg_rsp.GeneralDeviceCapabilities;
 
             // Check to make sure the model number matches and that this device
@@ -1050,7 +1054,7 @@ namespace SimpleLLRPSample
         public static void setReader_PARM()
         {
             /*
-             * Set Channel Index, which represents frequency (MHz). Namely,
+             * Set Channel Index, 16 in total, which represents frequency (MHz). Namely,
              * 1: 920.63; 2: 920.88; ...... ; 16: 924.38
              */
             reader_para.ChannelIndex = 1;
@@ -1065,7 +1069,17 @@ namespace SimpleLLRPSample
             reader_para.AntennaID = new bool[] { true, false, false, false };
         }
 
+
+        public static void specifyEPC()
+        {
+            // only those tags whose EPC are logged in the dictionary can be recorded.
+            EPC_dictionary.Add("3022");
+            EPC_dictionary.Add("FFFFFFFFFFFFFFFFFFFF0007");
+            EPC_dictionary.Add("FFFFFFFFFFFFFFFFFFFF3114");
+            // ...
+        }
         #endregion
+
 
         public static void InitializeConfiguration()
         {
@@ -1077,6 +1091,7 @@ namespace SimpleLLRPSample
             data = new DataTable();
             // Set Reader Config in Default Way.
             reader_para = new Reader.ReaderParameters();
+            EPC_dictionary = new HashSet<String>();
 
             //Impinj Best Practice! Always Install the Impinj extensions
             Impinj_Installer.Install();
@@ -1103,6 +1118,7 @@ namespace SimpleLLRPSample
             InitializeConfiguration();
             InitializeDataRow();
             setReader_PARM();
+            specifyEPC();
             ConnectTo(IPAddress);
 
             //subscribe to client event notification and ro access report
@@ -1128,7 +1144,7 @@ namespace SimpleLLRPSample
             Console.WriteLine("  Calculated " + directionCount + " Velocity Estimates.");
             Console.WriteLine("  Received " + reportCount + " Tag Reports.");
             Console.WriteLine("  Received " + eventCount + " Events.");
-            
+
             // clean up the reader
             reader_CleanSubscription();
 
