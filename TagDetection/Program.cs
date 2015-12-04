@@ -61,7 +61,6 @@ namespace SimpleLLRPSample
         public static DataTable data;
         public static LLRPClient reader;
         private static Reader.ReaderParameters reader_para;
-        private static HashSet<String> EPC_dictionary;
 
 
         #region Saving Data
@@ -151,9 +150,6 @@ namespace SimpleLLRPSample
                         data += currentEpcData;
                     }
 
-                    if (!EPC_dictionary.Contains(currentEpcData))
-                        continue;
-
                     velData = data;
 
                     // collect some data for velocity calculation
@@ -200,8 +196,9 @@ namespace SimpleLLRPSample
 
                             // LOGGING
                             // LogHelper.WriteLog(typeof(Program), currentRfPhase.ToString());
-                            AppendRowToDatatable();
+                            // AppendRowToDatatable();
                         }
+                        AppendRowToDatatable();
                     }
 
                     // estimate the velocity and print a filtered version
@@ -355,17 +352,21 @@ namespace SimpleLLRPSample
                 {
                     Console.WriteLine(rsp.LLRPStatus.StatusCode.ToString());
                     reader.Close();
-                    return;
+                    System.Environment.Exit(1);
                 }
                 Console.WriteLine("OK!\n");
             }
             else if (msg_err != null)// Error
             {
                 Console.WriteLine(msg_err.ToString());
+                reader.Close();
+                System.Environment.Exit(1);
             }
             else// Timeout
             {
                 Console.WriteLine("DELETE_ROSPEC Command Timeout Error.");
+                reader.Close();
+                System.Environment.Exit(1);
             }
         }
 
@@ -389,7 +390,7 @@ namespace SimpleLLRPSample
                 {
                     Console.WriteLine(msg_rsp.LLRPStatus.StatusCode.ToString());
                     reader.Close();
-                    return;
+                    System.Environment.Exit(1);
                 }
                 Console.WriteLine("OK!\n");
             }
@@ -397,11 +398,13 @@ namespace SimpleLLRPSample
             {
                 Console.WriteLine(msg_err.ToString());
                 reader.Close();
+                System.Environment.Exit(1);
             }
             else    // Time out
             {
                 Console.WriteLine("Enable Extensions Command Timed out\n");
                 reader.Close();
+                System.Environment.Exit(1);
             }
         }
 
@@ -439,7 +442,11 @@ namespace SimpleLLRPSample
             PARAM_AISpec aiSpec = new PARAM_AISpec();
             aiSpec.AntennaIDs = new UInt16Array();
             // Enable all antennas
-            aiSpec.AntennaIDs.Add(0);   // 0: means apply to all antenna
+            for (ushort i = 1; i <= reader_para.AntennaID.Length; ++i )
+            {
+                if (reader_para.AntennaID[i - 1])
+                    aiSpec.AntennaIDs.Add(i);
+            }
             // No AISpec stop trigger. It stops when the ROSpec stops.
             aiSpec.AISpecStopTrigger = new PARAM_AISpecStopTrigger();
             aiSpec.AISpecStopTrigger.AISpecStopTriggerType = ENUM_AISpecStopTriggerType.Null;
@@ -493,7 +500,7 @@ namespace SimpleLLRPSample
                 {
                     Console.WriteLine(rsp.LLRPStatus.StatusCode.ToString());
                     reader.Close();
-                    return;
+                    System.Environment.Exit(1);
                 }
                 Console.WriteLine("OK!\n");
             }
@@ -507,6 +514,7 @@ namespace SimpleLLRPSample
             {
                 Console.WriteLine("ADD_ROSPEC Command Timed out\n");
                 reader.Close();
+                System.Environment.Exit(1);
             }
         }
 
@@ -557,7 +565,7 @@ namespace SimpleLLRPSample
                 {
                     Console.WriteLine(rsp.LLRPStatus.StatusCode.ToString());
                     reader.Close();
-                    return;
+                    System.Environment.Exit(1);
                 }
                 Console.WriteLine("OK!\n");
             }
@@ -566,13 +574,13 @@ namespace SimpleLLRPSample
                 Console.WriteLine("ERROR!\n\t");
                 Console.WriteLine(msg_err.ToString());
                 reader.Close();
-                return;
+                System.Environment.Exit(1);
             }
             else
             {
                 Console.WriteLine("ADD_ROSPEC Command Timed out\n");
                 reader.Close();
-                return;
+                System.Environment.Exit(1);
             }
         }
 
@@ -590,7 +598,7 @@ namespace SimpleLLRPSample
                 {
                     Console.WriteLine(rsp.LLRPStatus.StatusCode.ToString());
                     reader.Close();
-                    return;
+                    System.Environment.Exit(1);
                 }
                 Console.WriteLine("OK!\n");
             }
@@ -599,11 +607,13 @@ namespace SimpleLLRPSample
                 Console.WriteLine("ERROR!\n\t");
                 Console.WriteLine(msg_err.ToString());
                 reader.Close();
+                System.Environment.Exit(1);
             }
             else//time out
             {
                 Console.WriteLine("ENABLE_ROSPEC Command Timed out\n");
                 reader.Close();
+                System.Environment.Exit(1);
             }
         }
 
@@ -621,7 +631,7 @@ namespace SimpleLLRPSample
                 {
                     Console.WriteLine(rsp.LLRPStatus.StatusCode.ToString());
                     reader.Close();
-                    return;
+                    System.Environment.Exit(1);
                 }
                 Console.WriteLine("OK!\n");
                 Console.WriteLine(rsp.LLRPStatus.ToString());
@@ -630,13 +640,13 @@ namespace SimpleLLRPSample
             {
                 Console.WriteLine(msg_err.ToString());
                 reader.Close();
-                return;
+                System.Environment.Exit(1);
             }
             else
             {
                 Console.WriteLine("START_ROSPEC Command Timed out\n");
                 reader.Close();
-                return;
+                System.Environment.Exit(1);
             }
         }
 
@@ -654,7 +664,7 @@ namespace SimpleLLRPSample
                 {
                     Console.WriteLine(rsp.LLRPStatus.StatusCode.ToString());
                     reader.Close();
-                    return;
+                    System.Environment.Exit(1);
                 }
                 Console.WriteLine("OK!\n");
             }
@@ -662,13 +672,13 @@ namespace SimpleLLRPSample
             {
                 Console.WriteLine(msg_err.ToString());
                 reader.Close();
-                return;
+                System.Environment.Exit(1);
             }
             else
             {
                 Console.WriteLine("STOP_ROSPEC Command Timed out\n");
                 reader.Close();
-                return;
+                System.Environment.Exit(1);
             }
         }
 
@@ -685,7 +695,7 @@ namespace SimpleLLRPSample
                 {
                     Console.WriteLine(rsp.LLRPStatus.StatusCode.ToString());
                     reader.Close();
-                    return;
+                    System.Environment.Exit(1);
                 }
                 Console.WriteLine("OK!\n");
             }
@@ -693,11 +703,13 @@ namespace SimpleLLRPSample
             {
                 Console.WriteLine(msg_err.ToString());
                 reader.Close();
+                System.Environment.Exit(1);
             }
             else
             {
                 Console.WriteLine("GET_ROSPEC Command Timed out\n");
                 reader.Close();
+                System.Environment.Exit(1);
             }
         }
         #endregion
@@ -746,7 +758,7 @@ namespace SimpleLLRPSample
                     Console.WriteLine(rsp.LLRPStatus.StatusCode.ToString());
                     Console.WriteLine(rsp.LLRPStatus.ErrorDescription.ToString());
                     reader.Close();
-                    return;
+                    System.Environment.Exit(1);
                 }
                 Console.WriteLine("OK!\n");
             }
@@ -754,11 +766,13 @@ namespace SimpleLLRPSample
             {
                 Console.WriteLine(msg_err.ToString());
                 reader.Close();
+                System.Environment.Exit(1);
             }
             else
             {
                 Console.WriteLine("SET_READER_CONFIG Command Timed out\n");
                 reader.Close();
+                System.Environment.Exit(1);
             }
         }
 
@@ -767,15 +781,11 @@ namespace SimpleLLRPSample
         {
             Console.Write("Set Reader Configuration ----- ");
 
-            byte numAntennaToSet = 0;
-            ushort antennaSet = 0;
-            for (int i = 0; i < reader_para.AntennaID.Length; ++i)
+            ushort numAntennaToSet = 0;
+            for (ushort i = 0; i < reader_para.AntennaID.Length; ++i)
             {
-                if (reader_para.AntennaID[i] == true)
-                {
-                    antennaSet = (ushort)i;
+                if (reader_para.AntennaID[i])
                     ++numAntennaToSet;
-                }
             }
 
             MSG_SET_READER_CONFIG msg = new MSG_SET_READER_CONFIG();
@@ -798,7 +808,7 @@ namespace SimpleLLRPSample
                 msg.AntennaConfiguration[i] = new PARAM_AntennaConfiguration();
                 msg.AntennaConfiguration[i].AirProtocolInventoryCommandSettings = new UNION_AirProtocolInventoryCommandSettings();
                 msg.AntennaConfiguration[i].AirProtocolInventoryCommandSettings.Add(cmd);
-                msg.AntennaConfiguration[i].AntennaID = antennaSet;
+                msg.AntennaConfiguration[i].AntennaID = (ushort)(i + 1);
                 msg.AntennaConfiguration[i].RFReceiver = new PARAM_RFReceiver();
                 msg.AntennaConfiguration[i].RFReceiver.ReceiverSensitivity = reader_para.ReaderSensitivity;
                 msg.AntennaConfiguration[i].RFTransmitter = new PARAM_RFTransmitter();
@@ -827,18 +837,23 @@ namespace SimpleLLRPSample
             msg.ReaderEventNotificationSpec.EventNotificationState[0] = new PARAM_EventNotificationState();
             msg.ReaderEventNotificationSpec.EventNotificationState[0].EventType = ENUM_NotificationEventType.AISpec_Event;
             msg.ReaderEventNotificationSpec.EventNotificationState[0].NotificationState = false;
+
             msg.ReaderEventNotificationSpec.EventNotificationState[1] = new PARAM_EventNotificationState();
             msg.ReaderEventNotificationSpec.EventNotificationState[1].EventType = ENUM_NotificationEventType.Antenna_Event;
             msg.ReaderEventNotificationSpec.EventNotificationState[1].NotificationState = true;
+
             msg.ReaderEventNotificationSpec.EventNotificationState[2] = new PARAM_EventNotificationState();
             msg.ReaderEventNotificationSpec.EventNotificationState[2].EventType = ENUM_NotificationEventType.GPI_Event;
             msg.ReaderEventNotificationSpec.EventNotificationState[2].NotificationState = false;
+
             msg.ReaderEventNotificationSpec.EventNotificationState[3] = new PARAM_EventNotificationState();
             msg.ReaderEventNotificationSpec.EventNotificationState[3].EventType = ENUM_NotificationEventType.Reader_Exception_Event;
             msg.ReaderEventNotificationSpec.EventNotificationState[3].NotificationState = true;
+
             msg.ReaderEventNotificationSpec.EventNotificationState[4] = new PARAM_EventNotificationState();
             msg.ReaderEventNotificationSpec.EventNotificationState[4].EventType = ENUM_NotificationEventType.RFSurvey_Event;
             msg.ReaderEventNotificationSpec.EventNotificationState[4].NotificationState = true;
+
 
             msg.ROReportSpec = new PARAM_ROReportSpec();
             msg.ROReportSpec.N = 1;
@@ -864,6 +879,7 @@ namespace SimpleLLRPSample
 
             msg.ResetToFactoryDefault = false;
 
+
             MSG_ERROR_MESSAGE msg_err;
             MSG_SET_READER_CONFIG_RESPONSE rsp = reader.SET_READER_CONFIG(msg, out msg_err, 12000);
             if (rsp != null)
@@ -873,7 +889,7 @@ namespace SimpleLLRPSample
                     Console.WriteLine(rsp.LLRPStatus.StatusCode.ToString());
                     Console.WriteLine(rsp.LLRPStatus.ErrorDescription.ToString());
                     reader.Close();
-                    return;
+                    System.Environment.Exit(1);
                 }
                 Console.WriteLine("OK!\n");
             }
@@ -881,11 +897,13 @@ namespace SimpleLLRPSample
             {
                 Console.WriteLine(msg_err.ToString());
                 reader.Close();
+                System.Environment.Exit(1);
             }
             else
             {
                 Console.WriteLine("SET_READER_CONFIG Command Timed out\n");
                 reader.Close();
+                System.Environment.Exit(1);
             }
         }
 
@@ -910,7 +928,7 @@ namespace SimpleLLRPSample
                 {
                     Console.WriteLine(rsp_cfg.LLRPStatus.StatusCode.ToString());
                     reader.Close();
-                    return;
+                    System.Environment.Exit(1);
                 }
                 Console.WriteLine("OK!\n");
             }
@@ -918,11 +936,13 @@ namespace SimpleLLRPSample
             {
                 Console.WriteLine(msg_err.ToString());
                 reader.Close();
+                System.Environment.Exit(1);
             }
             else // time out
             {
                 Console.WriteLine("SET_READER_CONFIG Command Timed out\n");
                 reader.Close();
+                System.Environment.Exit(1);
             }
         }
 
@@ -945,7 +965,7 @@ namespace SimpleLLRPSample
                 {
                     Console.WriteLine(msg_rsp.LLRPStatus.StatusCode.ToString());
                     reader.Close();
-                    return;
+                    System.Environment.Exit(1);
                 }
                 Console.WriteLine("OK!\n");
             }
@@ -953,13 +973,13 @@ namespace SimpleLLRPSample
             {
                 Console.WriteLine(msg_err.ToString());
                 reader.Close();
-                return;
+                System.Environment.Exit(1);
             }
             else
             {
                 Console.WriteLine("GET reader Capabilities Command Timed out\n");
                 reader.Close();
-                return;
+                System.Environment.Exit(1);
             }
 
             // Get the reader model number
@@ -976,6 +996,7 @@ namespace SimpleLLRPSample
             {
                 Console.WriteLine("Could not determine reader model number\n");
                 reader.Close();
+                System.Environment.Exit(1);
             }
         }
 
@@ -996,7 +1017,7 @@ namespace SimpleLLRPSample
                     Console.WriteLine(rsp.LLRPStatus.StatusCode.ToString());
                     Console.WriteLine(rsp.LLRPStatus.ErrorDescription.ToString());
                     reader.Close();
-                    return;
+                    System.Environment.Exit(1);
                 }
                 Console.WriteLine("OK!\n");
             }
@@ -1004,11 +1025,13 @@ namespace SimpleLLRPSample
             {
                 Console.WriteLine(msg_err.ToString());
                 reader.Close();
+                System.Environment.Exit(1);
             }
             else
             {
                 Console.WriteLine("GET_READER_CONFIG Command Timed out\n");
                 reader.Close();
+                System.Environment.Exit(1);
             }
         }
 
@@ -1066,18 +1089,9 @@ namespace SimpleLLRPSample
             reader_para.TagTransitTime = 0;
             reader_para.ReaderSensitivity = 1;
             // each value in the array map to Antenna 1, Antenna 2, Antenna 3, Antenna 4, respectively.
-            reader_para.AntennaID = new bool[] { true, false, false, false };
+            reader_para.AntennaID = new bool[] { true, true, false, false };
         }
 
-
-        public static void specifyEPC()
-        {
-            // only those tags whose EPC are logged in the dictionary can be recorded.
-            EPC_dictionary.Add("3022");
-            EPC_dictionary.Add("FFFFFFFFFFFFFFFFFFFF0007");
-            EPC_dictionary.Add("FFFFFFFFFFFFFFFFFFFF3114");
-            // ...
-        }
         #endregion
 
 
@@ -1091,7 +1105,6 @@ namespace SimpleLLRPSample
             data = new DataTable();
             // Set Reader Config in Default Way.
             reader_para = new Reader.ReaderParameters();
-            EPC_dictionary = new HashSet<String>();
 
             //Impinj Best Practice! Always Install the Impinj extensions
             Impinj_Installer.Install();
@@ -1101,7 +1114,7 @@ namespace SimpleLLRPSample
 
         public static void Main()
         {
-            string IPAddress = "192.168.1.222";
+            string IPAddress = "169.254.1.1";
             string fpath = @"C:\Users\MY\Desktop\";
             if (!Directory.Exists(fpath))
                 Directory.CreateDirectory(fpath);
@@ -1111,14 +1124,13 @@ namespace SimpleLLRPSample
             string fname = strCurrentTime + ".csv";
 
             // set data collection time (s)
-            UInt16 sustainTime = 30;
+            UInt16 sustainTime = 5;
 
             Console.WriteLine("Impinj C# LTK.NET RFID Application DocSample4 reader ----- " + IPAddress + "\n");
 
             InitializeConfiguration();
             InitializeDataRow();
             setReader_PARM();
-            specifyEPC();
             ConnectTo(IPAddress);
 
             //subscribe to client event notification and ro access report
