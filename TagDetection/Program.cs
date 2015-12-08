@@ -53,14 +53,18 @@ namespace SimpleLLRPSample
 
         // use these factors to reduce computation overload
         // convert rf-phase ([0, 4096]) to phase-angle (Radian, [0, 2*pi]), namely res = (currentRfPhase / 4096) * 2 * Math.PI
-        private static double convert2radian = 2 * Math.PI / 4096.0;
+        public static double convert2radian = 2 * Math.PI / 4096.0;
         // convert rf-phase ([0, 4096]) to phase (degree, [0, 360]), namely res = (currentRfPhase / 4096) * 360;
-        private static double convert2degree = 360.0 / 4096.0;
+        public static double convert2degree = 360.0 / 4096.0;
 
 
         public static DataTable data;
         public static LLRPClient reader;
         private static Reader.ReaderParameters reader_para;
+
+
+        // if LOG_TO_FILE = true, output to log, else, output to console
+        private static bool LOG_TO_FILE = true;
 
 
         #region Saving Data
@@ -308,30 +312,95 @@ namespace SimpleLLRPSample
             DateTime epoch = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
             DateTime now = epoch.AddMilliseconds(millis);
 
-            Console.WriteLine("======\tReader Event " + eventCount.ToString() + "\t======\t" + now.ToString("O"));
+
+            string message = "======\tReader Event " + eventCount.ToString() + "\t======\n" + now.ToString("O");
+            if (LOG_TO_FILE)
+                LogHelper.WriteLog(typeof(Program), message);
+            else
+                Console.WriteLine(message);
 
             // this is how you would look for individual events of interest
             // Here I just dump the event
             if (msg.ReaderEventNotificationData.AISpecEvent != null)
-                Console.WriteLine(msg.ReaderEventNotificationData.AISpecEvent.ToString());
+            {
+                message = msg.ReaderEventNotificationData.AISpecEvent.ToString();
+                if (LOG_TO_FILE)
+                    LogHelper.WriteLog(typeof(Program), message);
+                else
+                    Console.WriteLine(message);
+            }
             if (msg.ReaderEventNotificationData.AntennaEvent != null)
-                Console.WriteLine(msg.ReaderEventNotificationData.AntennaEvent.ToString());
+            {
+                message = msg.ReaderEventNotificationData.AntennaEvent.ToString();
+                if (LOG_TO_FILE)
+                    LogHelper.WriteLog(typeof(Program), message);
+                else
+                    Console.WriteLine(message);
+            }
             if (msg.ReaderEventNotificationData.ConnectionAttemptEvent != null)
-                Console.WriteLine(msg.ReaderEventNotificationData.ConnectionAttemptEvent.ToString());
+            {
+                message = msg.ReaderEventNotificationData.ConnectionAttemptEvent.ToString();
+                if (LOG_TO_FILE)
+                    LogHelper.WriteLog(typeof(Program), message);
+                else
+                    Console.WriteLine(message);
+            }
             if (msg.ReaderEventNotificationData.ConnectionCloseEvent != null)
-                Console.WriteLine(msg.ReaderEventNotificationData.ConnectionCloseEvent.ToString());
+            {
+                message =  msg.ReaderEventNotificationData.ConnectionCloseEvent.ToString();
+                if (LOG_TO_FILE)
+                    LogHelper.WriteLog(typeof(Program), message);
+                else
+                    Console.WriteLine(message);
+            }
             if (msg.ReaderEventNotificationData.GPIEvent != null)
-                Console.WriteLine(msg.ReaderEventNotificationData.GPIEvent.ToString());
+            {
+                message = msg.ReaderEventNotificationData.GPIEvent.ToString();
+                if (LOG_TO_FILE)
+                    LogHelper.WriteLog(typeof(Program), message);
+                else
+                    Console.WriteLine(message);
+            }
             if (msg.ReaderEventNotificationData.HoppingEvent != null)
-                Console.WriteLine(msg.ReaderEventNotificationData.HoppingEvent.ToString());
+            {
+                message = msg.ReaderEventNotificationData.HoppingEvent.ToString();
+                if (LOG_TO_FILE)
+                    LogHelper.WriteLog(typeof(Program), message);
+                else
+                    Console.WriteLine(message);
+            }
             if (msg.ReaderEventNotificationData.ReaderExceptionEvent != null)
-                Console.WriteLine(msg.ReaderEventNotificationData.ReaderExceptionEvent.ToString());
+            {
+                message = msg.ReaderEventNotificationData.ReaderExceptionEvent.ToString();
+                if (LOG_TO_FILE)
+                    LogHelper.WriteLog(typeof(Program), message);
+                else
+                    Console.WriteLine(message);
+            }
             if (msg.ReaderEventNotificationData.ReportBufferLevelWarningEvent != null)
-                Console.WriteLine(msg.ReaderEventNotificationData.ReportBufferLevelWarningEvent.ToString());
+            {
+                message = msg.ReaderEventNotificationData.ReportBufferLevelWarningEvent.ToString();
+                if (LOG_TO_FILE)
+                    LogHelper.WriteLog(typeof(Program), message);
+                else
+                    Console.WriteLine(message);
+            }
             if (msg.ReaderEventNotificationData.ReportBufferOverflowErrorEvent != null)
-                Console.WriteLine(msg.ReaderEventNotificationData.ReportBufferOverflowErrorEvent.ToString());
+            {
+                message = msg.ReaderEventNotificationData.ReportBufferOverflowErrorEvent.ToString();
+                if (LOG_TO_FILE)
+                    LogHelper.WriteLog(typeof(Program), message);
+                else
+                    Console.WriteLine(message);
+            }
             if (msg.ReaderEventNotificationData.ROSpecEvent != null)
-                Console.WriteLine(msg.ReaderEventNotificationData.ROSpecEvent.ToString());
+            {
+                message = msg.ReaderEventNotificationData.ROSpecEvent.ToString();
+                if (LOG_TO_FILE)
+                    LogHelper.WriteLog(typeof(Program), message);
+                else
+                    Console.WriteLine(message);
+            }
         }
         #endregion
 
@@ -1077,10 +1146,13 @@ namespace SimpleLLRPSample
         public static void setReader_PARM()
         {
             /*
-             * Set Channel Index, 16 in total, which represents frequency (MHz). Namely,
-             * 1: 920.63; 2: 920.88; ...... ; 16: 924.38
+             * Set Channel Index, 16 in total, which represents different frequency (MHz). Namely,
+             * [1: 920.63]
+             * [2: 920.88]
+             * ...... 
+             * [16: 924.38]
              */
-            reader_para.ChannelIndex = 1;
+            reader_para.ChannelIndex = 16;
             reader_para.Attenuation = 0;
             reader_para.ModeIndex = 1000;
             reader_para.HopTableIndex = 0;
@@ -1114,7 +1186,7 @@ namespace SimpleLLRPSample
 
         public static void Main()
         {
-            string IPAddress = "169.254.1.1";
+            string IPAddress = "192.168.1.222";
             string fpath = @"C:\Users\MY\Desktop\";
             if (!Directory.Exists(fpath))
                 Directory.CreateDirectory(fpath);
@@ -1124,7 +1196,7 @@ namespace SimpleLLRPSample
             string fname = strCurrentTime + ".csv";
 
             // set data collection time (s)
-            UInt16 sustainTime = 5;
+            UInt16 sustainTime = 15;
 
             Console.WriteLine("Impinj C# LTK.NET RFID Application DocSample4 reader ----- " + IPAddress + "\n");
 
