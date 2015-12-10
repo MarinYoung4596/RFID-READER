@@ -1,0 +1,7 @@
+%% convert coordinate
+%% suppose the coordinate of Antenna in the global coordinate system is known in advance,
+%% and we have got the Antenna's as well as the Tag's coordinate in local coordinate system,
+%% then we can calculate the Tag's coordinate in global coordinate system.
+function gT = convertCoordinate(gA, lA, lT)
+    
+end
