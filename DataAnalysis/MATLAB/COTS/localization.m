@@ -44,22 +44,35 @@ phaseB = mean(tagB.PhaseInRadian);
 phaseC = mean(tagC.PhaseInRadian);
 
 % First distribution solution
-distAB = 8; % cm
-distBC = 8; % cm
-distAC = 16; % cm
+distAB = 0.08; % m
+distBC = 0.08; % m
+distAC = 0.16; % m
 
 % hyperbola parameters. suppose the tag B's location is the original point of local coordinate
 % A(distAB, 0);  B(0, 0);   C(-distBC, 0)
 % focus point: A, C;
 [AC_a1, AC_b1, AC_a2, AC_b2] = HyperbolaParameters(phaseA, phaseC, tagA.Frequency, distAC / 2);
+[r_AC_a1, r_AC_b1, r_AC_a2, r_AC_b2] = HyperbolaParameters(phaseC, phaseA, tagA.Frequency, distAC / 2);
 
 % focus point: A, B;
 [AB_a1, AB_b1, AB_a2, AB_b2] = HyperbolaParameters(phaseA, phaseB, tagA.Frequency, distAB / 2);
+[r_AB_a1, r_AB_b1, r_AB_a2, r_AB_b2] = HyperbolaParameters(phaseB, phaseA, tagA.Frequency, distAB / 2);
 
 % focus point: B, C;
 [BC_a1, BC_b1, BC_a2, BC_b2] = HyperbolaParameters(phaseB, phaseC, tagB.Frequency, distBC / 2);
+[r_BC_a1, r_BC_b1, r_BC_a2, r_BC_b2] = HyperbolaParameters(phaseC, phaseB, tagB.Frequency, distBC / 2);
 
 
+syms x, y;
+AC_eqn_1 = 'x^2/(AC_a1^2) - y^2/(AC_b1^2) = 1';
+AC_eqn_2 = 'x^2/(r_AC_a1^2) - y^2/(r_AC_a1^2) = 1';
+
+AB_eqn_1 = '(x-distAB/2)^2/(AB_a1^2) - y^2/(AB_b1^2) = 1';
+AB_eqn_2 = '(x-distAB/2)^2/(r_AB_a1^2) - y^2/(r_AB_b1^2) = 1';
+[x, y] = slove(AC_eqn_1, AC_eqn_2, AB_eqn_1, AB_eqn_2);
+
+x
+y
  
 % get data
 figure();

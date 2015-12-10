@@ -10,3 +10,12 @@ C:\Users\MY\Desktop\LTK_.NET_10_20_0\libltknet\DocSample4\bin\Debug\log4net.pdb
 C:\Users\MY\Desktop\LTK_.NET_10_20_0\libltknet\DocSample4\bin\Debug\log4net.xml
 C:\Users\MY\Desktop\LTK_.NET_10_20_0\libltknet\DocSample4\obj\Debug\DocSample4.exe
 C:\Users\MY\Desktop\LTK_.NET_10_20_0\libltknet\DocSample4\obj\Debug\DocSample4.pdb
+C:\Users\MY\Documents\RFID READER\TagDetection\bin\Debug\DocSample4.exe.config
+C:\Users\MY\Documents\RFID READER\TagDetection\obj\Debug\DocSample4.exe
+C:\Users\MY\Documents\RFID READER\TagDetection\obj\Debug\DocSample4.pdb
+C:\Users\MY\Documents\RFID READER\TagDetection\bin\Debug\DocSample4.exe
+C:\Users\MY\Documents\RFID READER\TagDetection\bin\Debug\DocSample4.pdb
+C:\Users\MY\Documents\RFID READER\TagDetection\bin\Debug\log4net.dll
+C:\Users\MY\Documents\RFID READER\TagDetection\bin\Debug\log4net.pdb
+C:\Users\MY\Documents\RFID READER\TagDetection\bin\Debug\log4net.xml
+C:\Users\MY\Documents\RFID READER\TagDetection\obj\Debug\TagDetection.csprojResolveAssemblyReference.cache
