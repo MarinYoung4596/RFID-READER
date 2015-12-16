@@ -127,8 +127,8 @@ namespace SimpleLLRPSample
             channelIndex = _ChannelIndex;
             frequency = 920.63 + (_ChannelIndex - 1) * 0.25;
             rssi = _RSSI;
-            phaseInDegree = _RawPhase * Program.convert2degree;
-            phaseInRadian = _RawPhase * Program.convert2radian;
+            phaseInDegree = _RawPhase * Program.Convert2Degree;
+            phaseInRadian = _RawPhase * Program.Convert2Radian;
             dopplerShift = _DopperShift;
             velocity = _Velocity;
         }

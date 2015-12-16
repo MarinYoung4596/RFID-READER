@@ -6,7 +6,7 @@ function gT = convertCoordinate(gA, lA, lT)
     % gA.x = k * lA.x + b;
     % gA.y = k * lA.y + b;
     % then k, b can be calculated.
-    k = (gA.y - gA.x) / (lA.y - lA.x);
+    k = (gA.y - gA.x) / (lA.y - lA.x); 
     b = gA.x - k * lA.x;
     % and hence:
     x = k * lT.x + b;

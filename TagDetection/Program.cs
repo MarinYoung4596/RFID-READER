@@ -28,62 +28,62 @@ namespace SimpleLLRPSample
 {
     public class Program
     {
-        private static int reportCount = 0;
-        private static int eventCount = 0;
-        private static int directionCount = 0;
-        private static UInt32 modelNumber = 0;
+        private static int _reportCount = 0;
+        private static int _eventCount = 0;
+        private static int _directionCount = 0;
+        private static UInt32 _modelNumber = 0;
 
-        // state data collected to use in the velocity algorithm
-        private static String currentEpcData;
-        private static UInt16 currentAntennaID;
-        private static UInt16 currentChannelIndex;
-        private static UInt16 currentRfPhase;
-        private static UInt64 currentReadTime;
-        private static Int16 currentPeakRSSI;
-        private static Int16 currentDopplerFrequency;
+        // state Data collected to use in the velocity algorithm
+        private static string _currentEpcData;
+        private static UInt16 _currentAntennaId;
+        private static UInt16 _currentChannelIndex;
+        private static UInt16 _currentRfPhase;
+        private static UInt64 _currentReadTime;
+        private static Int16 _currentPeakRssi;
+        private static Int16 _currentDopplerFrequency;
 
-        // state data collected to use in the velocity algorithm
-        private static String lastEpcData;
-        private static UInt16 lastAntennaID;
-        private static UInt16 lastChannelIndex;
-        private static UInt16 lastRfPhase;
-        private static UInt64 lastReadTime;
+        // state Data collected to use in the velocity algorithm
+        private static string _lastEpcData;
+        private static UInt16 _lastAntennaId;
+        private static UInt16 _lastChannelIndex;
+        private static UInt16 _lastRfPhase;
+        private static UInt64 _lastReadTime;
 
-        private static double filteredVelocity;
+        private static double _filteredVelocity;
 
         // use these factors to reduce computation overload
-        // convert rf-phase ([0, 4096]) to phase-angle (Radian, [0, 2*pi]), namely res = (currentRfPhase / 4096) * 2 * Math.PI
-        public static double convert2radian = 2 * Math.PI / 4096.0;
-        // convert rf-phase ([0, 4096]) to phase (degree, [0, 360]), namely res = (currentRfPhase / 4096) * 360;
-        public static double convert2degree = 360.0 / 4096.0;
+        // convert rf-phase ([0, 4096]) to phase-angle (Radian, [0, 2*pi]), namely res = (_currentRfPhase / 4096) * 2 * Math.PI
+        public static double Convert2Radian = 2 * Math.PI / 4096.0;
+        // convert rf-phase ([0, 4096]) to phase (degree, [0, 360]), namely res = (_currentRfPhase / 4096) * 360;
+        public static double Convert2Degree = 360.0 / 4096.0;
 
 
-        public static DataTable data;
-        public static LLRPClient reader;
-        private static Reader.ReaderParameters reader_para;
+        public static DataTable Data;
+        public static LLRPClient Reader;
+        private static Reader.ReaderParameters _readerPara;
 
 
         // if LOG_TO_FILE = true, output to log, else, output to console
-        private static bool LOG_TO_FILE = true;
+        private static readonly bool LOG_TO_FILE = true;
 
 
         #region Saving Data
         public static void InitializeDataRow()
         {
-            // Create columns in data table
-            data.Columns.Add("EPC");
-            data.Columns.Add("Time");
-            data.Columns.Add("Antenna");
-            data.Columns.Add("Tx Power");
-            data.Columns.Add("Current Frequency");
-            data.Columns.Add("PeakRSSI");
-            data.Columns.Add("Phase Angle");
-            data.Columns.Add("Phase");
-            data.Columns.Add("Doppler Shift");
-            data.Columns.Add("Velocity");
+            // Create columns in Data table
+            Data.Columns.Add("EPC");
+            Data.Columns.Add("Time");
+            Data.Columns.Add("Antenna");
+            Data.Columns.Add("Tx Power");
+            Data.Columns.Add("Current Frequency");
+            Data.Columns.Add("PeakRSSI");
+            Data.Columns.Add("Phase Angle");
+            Data.Columns.Add("Phase");
+            Data.Columns.Add("Doppler Shift");
+            Data.Columns.Add("Velocity");
 
             // Initialize Column Name
-            DataRow row = data.NewRow();
+            DataRow row = Data.NewRow();
             row["EPC"] = "EPC";
             row["Time"] = "Timestamp";
             row["Antenna"] = "Antenna";
@@ -94,41 +94,41 @@ namespace SimpleLLRPSample
             row["Phase"] = "PhaseAngle(Degree)";
             row["Doppler Shift"] = "DopplerShift(Hz)";
             row["Velocity"] = "Velocity";
-            data.Rows.Add(row);
+            Data.Rows.Add(row);
         }
 
 
         public static void AppendRowToDatatable()
         {
-            DataRow row = data.NewRow();
+            DataRow row = Data.NewRow();
 
-            row["EPC"] = currentEpcData;
-            row["Time"] = currentReadTime;
-            row["Antenna"] = currentAntennaID;
+            row["EPC"] = _currentEpcData;
+            row["Time"] = _currentReadTime;
+            row["Antenna"] = _currentAntennaId;
             // !!!
-            row["TX Power"] = (ushort)(61 - reader_para.Attenuation * 4);
+            row["TX Power"] = (ushort)(61 - _readerPara.Attenuation * 4);
             // [920.63 : 0.25 : 924.38], 16 different channels
-            row["Current Frequency"] = 920.63 + (reader_para.ChannelIndex - 1) * 0.25;
-            row["PeakRSSI"] = currentPeakRSSI / 100;
-            row["Phase Angle"] = currentRfPhase * convert2radian;   //(currentRfPhase / 4096) * 2 * Math.PI;
-            row["Phase"] = currentRfPhase * convert2degree;         //(currentRfPhase / 4096) * 360;
-            row["Doppler Shift"] = currentDopplerFrequency;
-            row["Velocity"] = filteredVelocity;
+            row["Current Frequency"] = 920.63 + (_readerPara.ChannelIndex - 1) * 0.25;
+            row["PeakRSSI"] = _currentPeakRssi / 100;
+            row["Phase Angle"] = _currentRfPhase * Convert2Radian;   //(_currentRfPhase / 4096) * 2 * Math.PI;
+            row["Phase"] = _currentRfPhase * Convert2Degree;         //(_currentRfPhase / 4096) * 360;
+            row["Doppler Shift"] = _currentDopplerFrequency;
+            row["Velocity"] = _filteredVelocity;
 
-            data.Rows.Add(row);
+            Data.Rows.Add(row);
         }
 
 
-        public static void SaveData(CsvStreamWriter CsvWriter)
+        public static void SaveData(CsvStreamWriter csvWriter)
         {
-            CsvWriter.AddData(data, 1);
-            CsvWriter.Save();
+            csvWriter.AddData(Data, 1);
+            csvWriter.Save();
         }
         #endregion
 
 
         #region Output Settings (REPORT/LOGGING)
-        // Simple Handler for receiving the tag reports from the reader
+        // Simple Handler for receiving the tag reports from the Reader
         public static void reader_OnRoAccessReportReceived(MSG_RO_ACCESS_REPORT msg)
         {
             // Report could be empty
@@ -137,7 +137,7 @@ namespace SimpleLLRPSample
                 // Loop through and print out each tag
                 for (int i = 0; i < msg.TagReportData.Length; i++)
                 {
-                    reportCount++;
+                    _reportCount++;
 
                     // just write out the EPC as a hex string for now. It is guaranteed to be
                     // in all LLRP reports regardless of default configuration
@@ -145,35 +145,35 @@ namespace SimpleLLRPSample
                     string velData;
                     if (msg.TagReportData[i].EPCParameter[0].GetType() == typeof(PARAM_EPC_96))
                     {
-                        currentEpcData = ((PARAM_EPC_96)(msg.TagReportData[i].EPCParameter[0])).EPC.ToHexString();
-                        data += currentEpcData;
+                        _currentEpcData = ((PARAM_EPC_96)(msg.TagReportData[i].EPCParameter[0])).EPC.ToHexString();
+                        data += _currentEpcData;
                     }
                     else
                     {
-                        currentEpcData = ((PARAM_EPCData)(msg.TagReportData[i].EPCParameter[0])).EPC.ToHexString();
-                        data += currentEpcData;
+                        _currentEpcData = ((PARAM_EPCData)(msg.TagReportData[i].EPCParameter[0])).EPC.ToHexString();
+                        data += _currentEpcData;
                     }
 
                     velData = data;
 
-                    // collect some data for velocity calculation
+                    // collect some Data for velocity calculation
                     // NOTE: these could be NULL, so we should check
                     if (msg.TagReportData[i].AntennaID != null)
                     {
-                        currentAntennaID = msg.TagReportData[i].AntennaID.AntennaID;
-                        data += " ant: " + currentAntennaID.ToString();
+                        _currentAntennaId = msg.TagReportData[i].AntennaID.AntennaID;
+                        data += " ant: " + _currentAntennaId.ToString();
                     }
 
                     if (msg.TagReportData[i].ChannelIndex != null)
                     {
-                        currentChannelIndex = msg.TagReportData[i].ChannelIndex.ChannelIndex;
-                        data += " ch: " + currentChannelIndex.ToString();
+                        _currentChannelIndex = msg.TagReportData[i].ChannelIndex.ChannelIndex;
+                        data += " ch: " + _currentChannelIndex.ToString();
                     }
 
                     if (msg.TagReportData[i].FirstSeenTimestampUTC != null)
                     {
-                        currentReadTime = msg.TagReportData[i].FirstSeenTimestampUTC.Microseconds;
-                        data += " time: " + currentReadTime.ToString();
+                        _currentReadTime = msg.TagReportData[i].FirstSeenTimestampUTC.Microseconds;
+                        data += " time: " + _currentReadTime.ToString();
                     }
 
                     if (msg.TagReportData[i].Custom != null)
@@ -184,22 +184,22 @@ namespace SimpleLLRPSample
                             Object param = msg.TagReportData[i].Custom[x];
                             if (param is PARAM_ImpinjRFPhaseAngle)
                             {
-                                currentRfPhase = ((PARAM_ImpinjRFPhaseAngle)param).PhaseAngle;
-                                data += " Phase: " + currentRfPhase.ToString();
+                                _currentRfPhase = ((PARAM_ImpinjRFPhaseAngle)param).PhaseAngle;
+                                data += " Phase: " + _currentRfPhase.ToString();
                             }
                             else if (param is PARAM_ImpinjPeakRSSI)
                             {
-                                currentPeakRSSI = ((PARAM_ImpinjPeakRSSI)param).RSSI;
-                                data += " RSSI: " + currentPeakRSSI.ToString();
+                                _currentPeakRssi = ((PARAM_ImpinjPeakRSSI)param).RSSI;
+                                data += " RSSI: " + _currentPeakRssi.ToString();
                             }
                             else if (param is PARAM_ImpinjRFDopplerFrequency)
                             {
-                                currentDopplerFrequency = ((PARAM_ImpinjRFDopplerFrequency)param).DopplerFrequency;
-                                data += " DF: " + currentDopplerFrequency.ToString();
+                                _currentDopplerFrequency = ((PARAM_ImpinjRFDopplerFrequency)param).DopplerFrequency;
+                                data += " DF: " + _currentDopplerFrequency.ToString();
                             }
 
                             // LOGGING
-                            // LogHelper.WriteLog(typeof(Program), currentRfPhase.ToString());
+                            // LogHelper.WriteLog(typeof(Program), _currentRfPhase.ToString());
                             // AppendRowToDatatable();
                         }
                         AppendRowToDatatable();
@@ -209,19 +209,19 @@ namespace SimpleLLRPSample
                     double velocity;
                     if (calculateVelocity(out velocity))
                     {
-                        directionCount++;
+                        _directionCount++;
                         /* keep a filtered value. Use a 1 pole IIR here for simplicity */
-                        filteredVelocity = (6 * filteredVelocity + 4 * velocity) / 10.0;
+                        _filteredVelocity = (6 * _filteredVelocity + 4 * velocity) / 10.0;
 
-                        if (filteredVelocity > 0.25)
+                        if (_filteredVelocity > 0.25)
                             velData += "---->";
-                        else if (filteredVelocity < -0.25)
+                        else if (_filteredVelocity < -0.25)
                             velData += "<----";
                         else
                             velData += "     ";
 
-                        //velData += " Velocity: " + filteredVelocity.ToString("F2");
-                        data += " Velocity: " + filteredVelocity.ToString();
+                        //velData += " Velocity: " + _filteredVelocity.ToString("F2");
+                        data += " Velocity: " + _filteredVelocity.ToString();
                     }
 
                     Console.WriteLine(data);
@@ -240,14 +240,14 @@ namespace SimpleLLRPSample
              * antenna and channel.  NOTE: this is just a simple example.
              * More sophisticated apps would create a database with
              * this information per-EPC */
-            if ((lastEpcData == currentEpcData) &&
-                (lastAntennaID == currentAntennaID) &&
-                (lastChannelIndex == currentChannelIndex) &&
-                (lastReadTime < currentReadTime))
+            if ((_lastEpcData == _currentEpcData) &&
+                (_lastAntennaId == _currentAntennaId) &&
+                (_lastChannelIndex == _currentChannelIndex) &&
+                (_lastReadTime < _currentReadTime))
             {
                 /* positive velocity is moving towards the antenna */
-                double phaseChangeDegrees = (((double)currentRfPhase - (double)lastRfPhase) * 360.0) / 4096.0;
-                double timeChangeUsec = (double)(currentReadTime - lastReadTime);
+                double phaseChangeDegrees = (((double)_currentRfPhase - (double)_lastRfPhase) * 360.0) / 4096.0;
+                double timeChangeUsec = (double)(_currentReadTime - _lastReadTime);
 
                 /* always wrap the phase to between -180 and 180 */
                 while (phaseChangeDegrees < -180)
@@ -285,23 +285,23 @@ namespace SimpleLLRPSample
             }
 
             // save the current sample as the alst sample
-            lastReadTime = currentReadTime;
-            lastEpcData = currentEpcData;
-            lastRfPhase = currentRfPhase;
-            lastAntennaID = currentAntennaID;
-            lastChannelIndex = currentChannelIndex;
+            _lastReadTime = _currentReadTime;
+            _lastEpcData = _currentEpcData;
+            _lastRfPhase = _currentRfPhase;
+            _lastAntennaId = _currentAntennaId;
+            _lastChannelIndex = _currentChannelIndex;
 
             return retVal;
         }
 
-        // Simple Handler for receiving the reader events from the reader
+        // Simple Handler for receiving the Reader events from the Reader
         public static void reader_OnReaderEventNotification(MSG_READER_EVENT_NOTIFICATION msg)
         {
             // Events could be empty
             if (msg.ReaderEventNotificationData == null) return;
 
             // Just write out the LTK-XML for now
-            eventCount++;
+            _eventCount++;
 
             // speedway readers always report UTC timestamp
             UNION_Timestamp t = msg.ReaderEventNotificationData.Timestamp;
@@ -313,7 +313,7 @@ namespace SimpleLLRPSample
             DateTime now = epoch.AddMilliseconds(millis);
 
 
-            string message = "======\tReader Event " + eventCount.ToString() + "\t======\n" + now.ToString("O");
+            string message = "======\tReader Event " + _eventCount.ToString() + "\t======\n" + now.ToString("O");
             if (LOG_TO_FILE)
                 LogHelper.WriteLog(typeof(Program), message);
             else
@@ -413,14 +413,14 @@ namespace SimpleLLRPSample
             msg.ROSpecID = 1111;
             MSG_ERROR_MESSAGE msg_err;
 
-            MSG_DELETE_ROSPEC_RESPONSE rsp = reader.DELETE_ROSPEC(msg, out msg_err, 2000);
+            MSG_DELETE_ROSPEC_RESPONSE rsp = Reader.DELETE_ROSPEC(msg, out msg_err, 2000);
 
             if (rsp != null)// Success
             {
                 if (rsp.LLRPStatus.StatusCode != ENUM_StatusCode.M_Success)
                 {
                     Console.WriteLine(rsp.LLRPStatus.StatusCode.ToString());
-                    reader.Close();
+                    Reader.Close();
                     System.Environment.Exit(1);
                 }
                 Console.WriteLine("OK!\n");
@@ -428,13 +428,13 @@ namespace SimpleLLRPSample
             else if (msg_err != null)// Error
             {
                 Console.WriteLine(msg_err.ToString());
-                reader.Close();
+                Reader.Close();
                 System.Environment.Exit(1);
             }
             else// Timeout
             {
                 Console.WriteLine("DELETE_ROSPEC Command Timeout Error.");
-                reader.Close();
+                Reader.Close();
                 System.Environment.Exit(1);
             }
         }
@@ -450,7 +450,7 @@ namespace SimpleLLRPSample
             imp_msg.MSG_ID = 1; // not this doesn't need to bet set as the library will default
 
             //Send the custom message and wait for 8 seconds
-            MSG_CUSTOM_MESSAGE cust_rsp = reader.CUSTOM_MESSAGE(imp_msg, out msg_err, 8000);
+            MSG_CUSTOM_MESSAGE cust_rsp = Reader.CUSTOM_MESSAGE(imp_msg, out msg_err, 8000);
             MSG_IMPINJ_ENABLE_EXTENSIONS_RESPONSE msg_rsp = cust_rsp as MSG_IMPINJ_ENABLE_EXTENSIONS_RESPONSE;
 
             if (msg_rsp != null)    // Success
@@ -458,7 +458,7 @@ namespace SimpleLLRPSample
                 if (msg_rsp.LLRPStatus.StatusCode != ENUM_StatusCode.M_Success)
                 {
                     Console.WriteLine(msg_rsp.LLRPStatus.StatusCode.ToString());
-                    reader.Close();
+                    Reader.Close();
                     System.Environment.Exit(1);
                 }
                 Console.WriteLine("OK!\n");
@@ -466,13 +466,13 @@ namespace SimpleLLRPSample
             else if (msg_err != null)   // Error
             {
                 Console.WriteLine(msg_err.ToString());
-                reader.Close();
+                Reader.Close();
                 System.Environment.Exit(1);
             }
             else    // Time out
             {
                 Console.WriteLine("Enable Extensions Command Timed out\n");
-                reader.Close();
+                Reader.Close();
                 System.Environment.Exit(1);
             }
         }
@@ -496,7 +496,7 @@ namespace SimpleLLRPSample
             // Specifies the start and stop triggers for the ROSpec
             msg.ROSpec.ROBoundarySpec = new PARAM_ROBoundarySpec();
             // Immediate start trigger
-            // The reader will start reading tags as soon as the ROSpec is enabled
+            // The Reader will start reading tags as soon as the ROSpec is enabled
             msg.ROSpec.ROBoundarySpec.ROSpecStartTrigger = new PARAM_ROSpecStartTrigger();
             msg.ROSpec.ROBoundarySpec.ROSpecStartTrigger.ROSpecStartTriggerType = ENUM_ROSpecStartTriggerType.Immediate;
             // No stop trigger. Keep reading tags until the ROSpec is disabled.
@@ -511,9 +511,9 @@ namespace SimpleLLRPSample
             PARAM_AISpec aiSpec = new PARAM_AISpec();
             aiSpec.AntennaIDs = new UInt16Array();
             // Enable all antennas
-            for (ushort i = 1; i <= reader_para.AntennaID.Length; ++i )
+            for (ushort i = 1; i <= _readerPara.AntennaID.Length; ++i )
             {
-                if (reader_para.AntennaID[i - 1])
+                if (_readerPara.AntennaID[i - 1])
                     aiSpec.AntennaIDs.Add(i);
             }
             // No AISpec stop trigger. It stops when the ROSpec stops.
@@ -562,13 +562,13 @@ namespace SimpleLLRPSample
             // These are custom fields, so they get added this way
             msg.ROSpec.ROReportSpec.Custom.Add(contentSelector);
 
-            MSG_ADD_ROSPEC_RESPONSE rsp = reader.ADD_ROSPEC(msg, out msg_err, 12000);
+            MSG_ADD_ROSPEC_RESPONSE rsp = Reader.ADD_ROSPEC(msg, out msg_err, 12000);
             if (rsp != null)
             {
                 if (rsp.LLRPStatus.StatusCode != ENUM_StatusCode.M_Success)
                 {
                     Console.WriteLine(rsp.LLRPStatus.StatusCode.ToString());
-                    reader.Close();
+                    Reader.Close();
                     System.Environment.Exit(1);
                 }
                 Console.WriteLine("OK!\n");
@@ -577,12 +577,12 @@ namespace SimpleLLRPSample
             {
                 Console.WriteLine("ERROR!\n\t");
                 Console.WriteLine(msg_err.ToString());
-                reader.Close();
+                Reader.Close();
             }
             else
             {
                 Console.WriteLine("ADD_ROSPEC Command Timed out\n");
-                reader.Close();
+                Reader.Close();
                 System.Environment.Exit(1);
             }
         }
@@ -609,7 +609,7 @@ namespace SimpleLLRPSample
                 if (obj == null || msg_type != ENUM_LLRP_MSG_TYPE.ADD_ROSPEC)
                 {
                     Console.WriteLine("Could not extract message from XML");
-                    reader.Close();
+                    Reader.Close();
                     return;
                 }
                 Console.Write("OK!\n");
@@ -617,7 +617,7 @@ namespace SimpleLLRPSample
             catch
             {
                 Console.WriteLine("Unable to convert to valid XML");
-                reader.Close();
+                Reader.Close();
                 return;
             }
 
@@ -625,15 +625,15 @@ namespace SimpleLLRPSample
             // covert to the proper message type
             MSG_ADD_ROSPEC msg = (MSG_ADD_ROSPEC)obj;
 
-            // Communicate that message to the reader
+            // Communicate that message to the Reader
             MSG_ERROR_MESSAGE msg_err;
-            MSG_ADD_ROSPEC_RESPONSE rsp = reader.ADD_ROSPEC(msg, out msg_err, 12000);
+            MSG_ADD_ROSPEC_RESPONSE rsp = Reader.ADD_ROSPEC(msg, out msg_err, 12000);
             if (rsp != null)
             {
                 if (rsp.LLRPStatus.StatusCode != ENUM_StatusCode.M_Success)
                 {
                     Console.WriteLine(rsp.LLRPStatus.StatusCode.ToString());
-                    reader.Close();
+                    Reader.Close();
                     System.Environment.Exit(1);
                 }
                 Console.WriteLine("OK!\n");
@@ -642,13 +642,13 @@ namespace SimpleLLRPSample
             {
                 Console.WriteLine("ERROR!\n\t");
                 Console.WriteLine(msg_err.ToString());
-                reader.Close();
+                Reader.Close();
                 System.Environment.Exit(1);
             }
             else
             {
                 Console.WriteLine("ADD_ROSPEC Command Timed out\n");
-                reader.Close();
+                Reader.Close();
                 System.Environment.Exit(1);
             }
         }
@@ -660,13 +660,13 @@ namespace SimpleLLRPSample
             MSG_ENABLE_ROSPEC msg = new MSG_ENABLE_ROSPEC();
             MSG_ERROR_MESSAGE msg_err;
             msg.ROSpecID = 1111; // this better match the ROSpec we created above
-            MSG_ENABLE_ROSPEC_RESPONSE rsp = reader.ENABLE_ROSPEC(msg, out msg_err, 2000);
+            MSG_ENABLE_ROSPEC_RESPONSE rsp = Reader.ENABLE_ROSPEC(msg, out msg_err, 2000);
             if (rsp != null)//success
             {
                 if (rsp.LLRPStatus.StatusCode != ENUM_StatusCode.M_Success)
                 {
                     Console.WriteLine(rsp.LLRPStatus.StatusCode.ToString());
-                    reader.Close();
+                    Reader.Close();
                     System.Environment.Exit(1);
                 }
                 Console.WriteLine("OK!\n");
@@ -675,13 +675,13 @@ namespace SimpleLLRPSample
             {
                 Console.WriteLine("ERROR!\n\t");
                 Console.WriteLine(msg_err.ToString());
-                reader.Close();
+                Reader.Close();
                 System.Environment.Exit(1);
             }
             else//time out
             {
                 Console.WriteLine("ENABLE_ROSPEC Command Timed out\n");
-                reader.Close();
+                Reader.Close();
                 System.Environment.Exit(1);
             }
         }
@@ -693,13 +693,13 @@ namespace SimpleLLRPSample
             MSG_START_ROSPEC msg = new MSG_START_ROSPEC();
             MSG_ERROR_MESSAGE msg_err;
             msg.ROSpecID = 1111; // this better match the RoSpec we created above
-            MSG_START_ROSPEC_RESPONSE rsp = reader.START_ROSPEC(msg, out msg_err, 12000);
+            MSG_START_ROSPEC_RESPONSE rsp = Reader.START_ROSPEC(msg, out msg_err, 12000);
             if (rsp != null)
             {
                 if (rsp.LLRPStatus.StatusCode != ENUM_StatusCode.M_Success)
                 {
                     Console.WriteLine(rsp.LLRPStatus.StatusCode.ToString());
-                    reader.Close();
+                    Reader.Close();
                     System.Environment.Exit(1);
                 }
                 Console.WriteLine("OK!\n");
@@ -708,13 +708,13 @@ namespace SimpleLLRPSample
             else if (msg_err != null)
             {
                 Console.WriteLine(msg_err.ToString());
-                reader.Close();
+                Reader.Close();
                 System.Environment.Exit(1);
             }
             else
             {
                 Console.WriteLine("START_ROSPEC Command Timed out\n");
-                reader.Close();
+                Reader.Close();
                 System.Environment.Exit(1);
             }
         }
@@ -726,13 +726,13 @@ namespace SimpleLLRPSample
             MSG_STOP_ROSPEC msg = new MSG_STOP_ROSPEC();
             MSG_ERROR_MESSAGE msg_err;
             msg.ROSpecID = 1111; // this better match the RoSpec we created above
-            MSG_STOP_ROSPEC_RESPONSE rsp = reader.STOP_ROSPEC(msg, out msg_err, 12000);
+            MSG_STOP_ROSPEC_RESPONSE rsp = Reader.STOP_ROSPEC(msg, out msg_err, 12000);
             if (rsp != null)
             {
                 if (rsp.LLRPStatus.StatusCode != ENUM_StatusCode.M_Success)
                 {
                     Console.WriteLine(rsp.LLRPStatus.StatusCode.ToString());
-                    reader.Close();
+                    Reader.Close();
                     System.Environment.Exit(1);
                 }
                 Console.WriteLine("OK!\n");
@@ -740,13 +740,13 @@ namespace SimpleLLRPSample
             else if (msg_err != null)
             {
                 Console.WriteLine(msg_err.ToString());
-                reader.Close();
+                Reader.Close();
                 System.Environment.Exit(1);
             }
             else
             {
                 Console.WriteLine("STOP_ROSPEC Command Timed out\n");
-                reader.Close();
+                Reader.Close();
                 System.Environment.Exit(1);
             }
         }
@@ -757,13 +757,13 @@ namespace SimpleLLRPSample
             Console.Write("Getting RoSpec ----- ");
             MSG_GET_ROSPECS msg = new MSG_GET_ROSPECS();
             MSG_ERROR_MESSAGE msg_err;
-            MSG_GET_ROSPECS_RESPONSE rsp = reader.GET_ROSPECS(msg, out msg_err, 3000);
+            MSG_GET_ROSPECS_RESPONSE rsp = Reader.GET_ROSPECS(msg, out msg_err, 3000);
             if (rsp != null)
             {
                 if (rsp.LLRPStatus.StatusCode != ENUM_StatusCode.M_Success)
                 {
                     Console.WriteLine(rsp.LLRPStatus.StatusCode.ToString());
-                    reader.Close();
+                    Reader.Close();
                     System.Environment.Exit(1);
                 }
                 Console.WriteLine("OK!\n");
@@ -771,13 +771,13 @@ namespace SimpleLLRPSample
             else if (msg_err != null)
             {
                 Console.WriteLine(msg_err.ToString());
-                reader.Close();
+                Reader.Close();
                 System.Environment.Exit(1);
             }
             else
             {
                 Console.WriteLine("GET_ROSPEC Command Timed out\n");
-                reader.Close();
+                Reader.Close();
                 System.Environment.Exit(1);
             }
         }
@@ -805,28 +805,28 @@ namespace SimpleLLRPSample
                 if (obj == null || msg_type != ENUM_LLRP_MSG_TYPE.SET_READER_CONFIG)
                 {
                     Console.WriteLine("Could not extract message from XML");
-                    reader.Close();
+                    Reader.Close();
                     return;
                 }
             }
             catch
             {
                 Console.WriteLine("Unable to convert to valid XML");
-                reader.Close();
+                Reader.Close();
                 return;
             }
 
-            // Communicate that message to the reader
+            // Communicate that message to the Reader
             MSG_SET_READER_CONFIG msg = (MSG_SET_READER_CONFIG)obj;
             MSG_ERROR_MESSAGE msg_err;
-            MSG_SET_READER_CONFIG_RESPONSE rsp = reader.SET_READER_CONFIG(msg, out msg_err, 12000);
+            MSG_SET_READER_CONFIG_RESPONSE rsp = Reader.SET_READER_CONFIG(msg, out msg_err, 12000);
             if (rsp != null)
             {
                 if (rsp.LLRPStatus.StatusCode != ENUM_StatusCode.M_Success)
                 {
                     Console.WriteLine(rsp.LLRPStatus.StatusCode.ToString());
                     Console.WriteLine(rsp.LLRPStatus.ErrorDescription.ToString());
-                    reader.Close();
+                    Reader.Close();
                     System.Environment.Exit(1);
                 }
                 Console.WriteLine("OK!\n");
@@ -834,13 +834,13 @@ namespace SimpleLLRPSample
             else if (msg_err != null)
             {
                 Console.WriteLine(msg_err.ToString());
-                reader.Close();
+                Reader.Close();
                 System.Environment.Exit(1);
             }
             else
             {
                 Console.WriteLine("SET_READER_CONFIG Command Timed out\n");
-                reader.Close();
+                Reader.Close();
                 System.Environment.Exit(1);
             }
         }
@@ -851,9 +851,9 @@ namespace SimpleLLRPSample
             Console.Write("Set Reader Configuration ----- ");
 
             ushort numAntennaToSet = 0;
-            for (ushort i = 0; i < reader_para.AntennaID.Length; ++i)
+            for (ushort i = 0; i < _readerPara.AntennaID.Length; ++i)
             {
-                if (reader_para.AntennaID[i])
+                if (_readerPara.AntennaID[i])
                     ++numAntennaToSet;
             }
 
@@ -863,12 +863,12 @@ namespace SimpleLLRPSample
 
             PARAM_C1G2InventoryCommand cmd = new PARAM_C1G2InventoryCommand();
             cmd.C1G2RFControl = new PARAM_C1G2RFControl();
-            cmd.C1G2RFControl.ModeIndex = reader_para.ModeIndex;
+            cmd.C1G2RFControl.ModeIndex = _readerPara.ModeIndex;
             cmd.C1G2RFControl.Tari = 0;
             cmd.C1G2SingulationControl = new PARAM_C1G2SingulationControl();
             cmd.C1G2SingulationControl.Session = new TwoBits(0);
-            cmd.C1G2SingulationControl.TagPopulation = reader_para.TagPopulation;
-            cmd.C1G2SingulationControl.TagTransitTime = reader_para.TagTransitTime;
+            cmd.C1G2SingulationControl.TagPopulation = _readerPara.TagPopulation;
+            cmd.C1G2SingulationControl.TagTransitTime = _readerPara.TagTransitTime;
             cmd.TagInventoryStateAware = false;
 
             msg.AntennaConfiguration = new PARAM_AntennaConfiguration[numAntennaToSet];
@@ -879,11 +879,11 @@ namespace SimpleLLRPSample
                 msg.AntennaConfiguration[i].AirProtocolInventoryCommandSettings.Add(cmd);
                 msg.AntennaConfiguration[i].AntennaID = (ushort)(i + 1);
                 msg.AntennaConfiguration[i].RFReceiver = new PARAM_RFReceiver();
-                msg.AntennaConfiguration[i].RFReceiver.ReceiverSensitivity = reader_para.ReaderSensitivity;
+                msg.AntennaConfiguration[i].RFReceiver.ReceiverSensitivity = _readerPara.ReaderSensitivity;
                 msg.AntennaConfiguration[i].RFTransmitter = new PARAM_RFTransmitter();
-                msg.AntennaConfiguration[i].RFTransmitter.ChannelIndex = reader_para.ChannelIndex;
-                msg.AntennaConfiguration[i].RFTransmitter.HopTableID = reader_para.HopTableIndex;
-                msg.AntennaConfiguration[i].RFTransmitter.TransmitPower = (ushort)(61 - reader_para.Attenuation * 4);
+                msg.AntennaConfiguration[i].RFTransmitter.ChannelIndex = _readerPara.ChannelIndex;
+                msg.AntennaConfiguration[i].RFTransmitter.HopTableID = _readerPara.HopTableIndex;
+                msg.AntennaConfiguration[i].RFTransmitter.TransmitPower = (ushort)(61 - _readerPara.Attenuation * 4);
             }
 
 
@@ -899,7 +899,7 @@ namespace SimpleLLRPSample
 
             msg.KeepaliveSpec = new PARAM_KeepaliveSpec();
             msg.KeepaliveSpec.KeepaliveTriggerType = ENUM_KeepaliveTriggerType.Null;
-            msg.KeepaliveSpec.PeriodicTriggerValue = reader_para.PeriodicTriggerValue;
+            msg.KeepaliveSpec.PeriodicTriggerValue = _readerPara.PeriodicTriggerValue;
 
             msg.ReaderEventNotificationSpec = new PARAM_ReaderEventNotificationSpec();
             msg.ReaderEventNotificationSpec.EventNotificationState = new PARAM_EventNotificationState[5];
@@ -950,14 +950,14 @@ namespace SimpleLLRPSample
 
 
             MSG_ERROR_MESSAGE msg_err;
-            MSG_SET_READER_CONFIG_RESPONSE rsp = reader.SET_READER_CONFIG(msg, out msg_err, 12000);
+            MSG_SET_READER_CONFIG_RESPONSE rsp = Reader.SET_READER_CONFIG(msg, out msg_err, 12000);
             if (rsp != null)
             {
                 if (rsp.LLRPStatus.StatusCode != ENUM_StatusCode.M_Success)
                 {
                     Console.WriteLine(rsp.LLRPStatus.StatusCode.ToString());
                     Console.WriteLine(rsp.LLRPStatus.ErrorDescription.ToString());
-                    reader.Close();
+                    Reader.Close();
                     System.Environment.Exit(1);
                 }
                 Console.WriteLine("OK!\n");
@@ -965,13 +965,13 @@ namespace SimpleLLRPSample
             else if (msg_err != null)
             {
                 Console.WriteLine(msg_err.ToString());
-                reader.Close();
+                Reader.Close();
                 System.Environment.Exit(1);
             }
             else
             {
                 Console.WriteLine("SET_READER_CONFIG Command Timed out\n");
-                reader.Close();
+                Reader.Close();
                 System.Environment.Exit(1);
             }
         }
@@ -981,7 +981,7 @@ namespace SimpleLLRPSample
         {
             Console.Write("Factory Default the Reader ----- ");
 
-            // factory default the reader
+            // factory default the Reader
             MSG_SET_READER_CONFIG msg_cfg = new MSG_SET_READER_CONFIG();
             MSG_ERROR_MESSAGE msg_err;
 
@@ -989,14 +989,14 @@ namespace SimpleLLRPSample
             msg_cfg.MSG_ID = 2; //this doesn't need to bet set as the library will default
 
             //if SET_READER_CONFIG affects antennas it could take several seconds to return
-            MSG_SET_READER_CONFIG_RESPONSE rsp_cfg = reader.SET_READER_CONFIG(msg_cfg, out msg_err, 12000);
+            MSG_SET_READER_CONFIG_RESPONSE rsp_cfg = Reader.SET_READER_CONFIG(msg_cfg, out msg_err, 12000);
 
             if (rsp_cfg != null) // success
             {
                 if (rsp_cfg.LLRPStatus.StatusCode != ENUM_StatusCode.M_Success)
                 {
                     Console.WriteLine(rsp_cfg.LLRPStatus.StatusCode.ToString());
-                    reader.Close();
+                    Reader.Close();
                     System.Environment.Exit(1);
                 }
                 Console.WriteLine("OK!\n");
@@ -1004,13 +1004,13 @@ namespace SimpleLLRPSample
             else if (msg_err != null) // error
             {
                 Console.WriteLine(msg_err.ToString());
-                reader.Close();
+                Reader.Close();
                 System.Environment.Exit(1);
             }
             else // time out
             {
                 Console.WriteLine("SET_READER_CONFIG Command Timed out\n");
-                reader.Close();
+                Reader.Close();
                 System.Environment.Exit(1);
             }
         }
@@ -1026,14 +1026,14 @@ namespace SimpleLLRPSample
 
             //Send the custom message and wait for 8 seconds
             MSG_ERROR_MESSAGE msg_err;
-            MSG_GET_READER_CAPABILITIES_RESPONSE msg_rsp = reader.GET_READER_CAPABILITIES(cap, out msg_err, 8000);
+            MSG_GET_READER_CAPABILITIES_RESPONSE msg_rsp = Reader.GET_READER_CAPABILITIES(cap, out msg_err, 8000);
 
             if (msg_rsp != null)
             {
                 if (msg_rsp.LLRPStatus.StatusCode != ENUM_StatusCode.M_Success)
                 {
                     Console.WriteLine(msg_rsp.LLRPStatus.StatusCode.ToString());
-                    reader.Close();
+                    Reader.Close();
                     System.Environment.Exit(1);
                 }
                 Console.WriteLine("OK!\n");
@@ -1041,30 +1041,30 @@ namespace SimpleLLRPSample
             else if (msg_err != null)
             {
                 Console.WriteLine(msg_err.ToString());
-                reader.Close();
+                Reader.Close();
                 System.Environment.Exit(1);
             }
             else
             {
-                Console.WriteLine("GET reader Capabilities Command Timed out\n");
-                reader.Close();
+                Console.WriteLine("GET Reader Capabilities Command Timed out\n");
+                Reader.Close();
                 System.Environment.Exit(1);
             }
 
-            // Get the reader model number
+            // Get the Reader model number
             PARAM_GeneralDeviceCapabilities dev_cap = msg_rsp.GeneralDeviceCapabilities;
 
             // Check to make sure the model number matches and that this device
-            // is an impinj reader (deviceManufacturerName == 25882)
+            // is an impinj Reader (deviceManufacturerName == 25882)
             if ((dev_cap != null) &&
                 (dev_cap.DeviceManufacturerName == 25882))
             {
-                modelNumber = dev_cap.ModelName;
+                _modelNumber = dev_cap.ModelName;
             }
             else
             {
-                Console.WriteLine("Could not determine reader model number\n");
-                reader.Close();
+                Console.WriteLine("Could not determine Reader model number\n");
+                Reader.Close();
                 System.Environment.Exit(1);
             }
         }
@@ -1078,14 +1078,14 @@ namespace SimpleLLRPSample
             msg.AntennaID = 1;
             msg.GPIPortNum = 0;
             MSG_ERROR_MESSAGE msg_err;
-            MSG_GET_READER_CONFIG_RESPONSE rsp = reader.GET_READER_CONFIG(msg, out msg_err, 3000);
+            MSG_GET_READER_CONFIG_RESPONSE rsp = Reader.GET_READER_CONFIG(msg, out msg_err, 3000);
             if (rsp != null)
             {
                 if (rsp.LLRPStatus.StatusCode != ENUM_StatusCode.M_Success)
                 {
                     Console.WriteLine(rsp.LLRPStatus.StatusCode.ToString());
                     Console.WriteLine(rsp.LLRPStatus.ErrorDescription.ToString());
-                    reader.Close();
+                    Reader.Close();
                     System.Environment.Exit(1);
                 }
                 Console.WriteLine("OK!\n");
@@ -1093,13 +1093,13 @@ namespace SimpleLLRPSample
             else if (msg_err != null)
             {
                 Console.WriteLine(msg_err.ToString());
-                reader.Close();
+                Reader.Close();
                 System.Environment.Exit(1);
             }
             else
             {
                 Console.WriteLine("GET_READER_CONFIG Command Timed out\n");
-                reader.Close();
+                Reader.Close();
                 System.Environment.Exit(1);
             }
         }
@@ -1111,10 +1111,10 @@ namespace SimpleLLRPSample
 
             ENUM_ConnectionAttemptStatusType status;
 
-            //Open the reader connection.  Timeout after 5 seconds
-            bool ret = reader.Open(ip, 5000, out status);
+            //Open the Reader connection.  Timeout after 5 seconds
+            bool ret = Reader.Open(ip, 5000, out status);
 
-            //Ensure that the open succeeded and that the reader
+            //Ensure that the open succeeded and that the Reader
             // returned the correct connection status result
             if (!ret || status != ENUM_ConnectionAttemptStatusType.Success)
             {
@@ -1129,17 +1129,17 @@ namespace SimpleLLRPSample
         public static void reader_AddSubscription()
         {
             Console.WriteLine("Adding Event Handlers...\n");
-            reader.OnReaderEventNotification += new delegateReaderEventNotification(reader_OnReaderEventNotification);
-            reader.OnRoAccessReportReceived += new delegateRoAccessReport(reader_OnRoAccessReportReceived);
+            Reader.OnReaderEventNotification += new delegateReaderEventNotification(reader_OnReaderEventNotification);
+            Reader.OnRoAccessReportReceived += new delegateRoAccessReport(reader_OnRoAccessReportReceived);
         }
 
 
         public static void reader_CleanSubscription()
         {
             Console.WriteLine("Closing...\n");
-            reader.Close();
-            reader.OnReaderEventNotification -= new delegateReaderEventNotification(reader_OnReaderEventNotification);
-            reader.OnRoAccessReportReceived -= new delegateRoAccessReport(reader_OnRoAccessReportReceived);
+            Reader.Close();
+            Reader.OnReaderEventNotification -= new delegateReaderEventNotification(reader_OnReaderEventNotification);
+            Reader.OnRoAccessReportReceived -= new delegateRoAccessReport(reader_OnRoAccessReportReceived);
         }
 
 
@@ -1152,16 +1152,16 @@ namespace SimpleLLRPSample
              * ...... 
              * [16: 924.38]
              */
-            reader_para.ChannelIndex = 16;
-            reader_para.Attenuation = 0;
-            reader_para.ModeIndex = 1000;
-            reader_para.HopTableIndex = 0;
-            reader_para.PeriodicTriggerValue = 0;
-            reader_para.TagPopulation = 32;
-            reader_para.TagTransitTime = 0;
-            reader_para.ReaderSensitivity = 1;
+            _readerPara.ChannelIndex = 16;
+            _readerPara.Attenuation = 0;
+            _readerPara.ModeIndex = 1000;
+            _readerPara.HopTableIndex = 0;
+            _readerPara.PeriodicTriggerValue = 0;
+            _readerPara.TagPopulation = 32;
+            _readerPara.TagTransitTime = 0;
+            _readerPara.ReaderSensitivity = 1;
             // each value in the array map to Antenna 1, Antenna 2, Antenna 3, Antenna 4, respectively.
-            reader_para.AntennaID = new bool[] { true, true, false, false };
+            _readerPara.AntennaID = new bool[] { true, false, false, false };
         }
 
         #endregion
@@ -1171,12 +1171,12 @@ namespace SimpleLLRPSample
         {
             Console.WriteLine("Initializing...\n");
 
-            // Create an instance of LLRP reader client.
-            reader = new LLRPClient();
+            // Create an instance of LLRP Reader client.
+            Reader = new LLRPClient();
             // Create an DataTable to save the current state of Tag
-            data = new DataTable();
+            Data = new DataTable();
             // Set Reader Config in Default Way.
-            reader_para = new Reader.ReaderParameters();
+            _readerPara = new Reader.ReaderParameters();
 
             //Impinj Best Practice! Always Install the Impinj extensions
             Impinj_Installer.Install();
@@ -1195,10 +1195,10 @@ namespace SimpleLLRPSample
             string strCurrentTime = dt.ToString("yyyyMMdd_HHmmss");
             string fname = strCurrentTime + ".csv";
 
-            // set data collection time (s)
+            // set Data collection time (s)
             UInt16 sustainTime = 15;
 
-            Console.WriteLine("Impinj C# LTK.NET RFID Application DocSample4 reader ----- " + IPAddress + "\n");
+            Console.WriteLine("Impinj C# LTK.NET RFID Application DocSample4 Reader ----- " + IPAddress + "\n");
 
             InitializeConfiguration();
             InitializeDataRow();
@@ -1219,24 +1219,24 @@ namespace SimpleLLRPSample
             //Start_RoSpec();
 
 
-            // wait around to collect some data (UNIT: ms)
+            // wait around to collect some Data (UNIT: ms)
             Thread.Sleep(sustainTime * 1000);
 
             Stop_RoSpec();
             ResetReaderToFactoryDefault();
 
-            Console.WriteLine("  Calculated " + directionCount + " Velocity Estimates.");
-            Console.WriteLine("  Received " + reportCount + " Tag Reports.");
-            Console.WriteLine("  Received " + eventCount + " Events.");
+            Console.WriteLine("  Calculated " + _directionCount + " Velocity Estimates.");
+            Console.WriteLine("  Received " + _reportCount + " Tag Reports.");
+            Console.WriteLine("  Received " + _eventCount + " Events.");
 
-            // clean up the reader
+            // clean up the Reader
             reader_CleanSubscription();
 
-            // save data into csv file.
-            Console.WriteLine("Saving data...");
+            // save Data into csv file.
+            Console.WriteLine("Saving Data...");
             Console.WriteLine(fpath + fname);
-            CsvStreamWriter CsvWriter = new CsvStreamWriter(fpath + fname);
-            SaveData(CsvWriter);
+            CsvStreamWriter csvWriter = new CsvStreamWriter(fpath + fname);
+            SaveData(csvWriter);
 
             Console.WriteLine("DONE!\n");
             Console.WriteLine("Press any key to exit!");

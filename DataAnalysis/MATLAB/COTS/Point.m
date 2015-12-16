@@ -6,8 +6,8 @@ classdef Point
     
     methods
         function p = Point(xx, yy)
-            x = xx;
-            y = yy;
+            p.x = xx;
+            p.y = yy;
         end
     end
 end

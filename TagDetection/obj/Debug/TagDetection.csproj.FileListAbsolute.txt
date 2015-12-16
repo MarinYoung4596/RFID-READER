@@ -19,3 +19,6 @@ C:\Users\MY\Documents\RFID READER\TagDetection\bin\Debug\log4net.dll
 C:\Users\MY\Documents\RFID READER\TagDetection\bin\Debug\log4net.pdb
 C:\Users\MY\Documents\RFID READER\TagDetection\bin\Debug\log4net.xml
 C:\Users\MY\Documents\RFID READER\TagDetection\obj\Debug\TagDetection.csprojResolveAssemblyReference.cache
+C:\Users\MarinYoung\Documents\RFID-READER\TagDetection\bin\Debug\DocSample4.exe.config
+C:\Users\MarinYoung\Documents\RFID-READER\TagDetection\obj\Debug\DocSample4.exe
+C:\Users\MarinYoung\Documents\RFID-READER\TagDetection\obj\Debug\DocSample4.pdb

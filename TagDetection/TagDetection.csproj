@@ -57,11 +57,11 @@
       <ItemGroup>
         <Reference Include="LLRP, Culture=neutral, processorArchitecture=MSIL">
           <SpecificVersion>False</SpecificVersion>
-          <HintPath>..\..\..\Desktop\LTK_.NET_10_20_0\libltknet\HelloLLRP\HelloLLRP\lib\LLRP.dll</HintPath>
+          <HintPath>lib\LLRP.dll</HintPath>
         </Reference>
         <Reference Include="LLRP.Impinj, Culture=neutral, processorArchitecture=MSIL">
           <SpecificVersion>False</SpecificVersion>
-          <HintPath>..\..\..\Desktop\LTK_.NET_10_20_0\libltknet\HelloLLRP\HelloLLRP\lib\LLRP.Impinj.dll</HintPath>
+          <HintPath>lib\LLRP.Impinj.dll</HintPath>
         </Reference>
         <Reference Include="System" />
         <Reference Include="System.Data" />

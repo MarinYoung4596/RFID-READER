@@ -2,20 +2,22 @@ classdef rawDataPacket
     properties
         EPC = '';   % string
         Antenna = 1;
-        Frequency = 920.e6; % Hz
+        Frequency = 924.38e6; % Hz
         DopplerShift = [];
-        PhaseInRadian = [];
+        PhaseInRadian = 0;
         RSSI = [];
+        count = 0;
     end
     
     methods
         function tag = rawDataPacket(epc)
-            EPC = epc;
-            Antenna = 1;
-            Frequency = 920.38e6; 
-            DopplerShift = [];
-            PhaseInRadian = [];
-            RSSI = [];
+            tag.EPC = epc;
+            tag.Antenna = 1;
+            tag.Frequency = 924.38e6;
+            tag.DopplerShift = [];
+            tag.PhaseInRadian = 0;
+            tag.RSSI = [];
+            tag.count = 0;
         end
     end
     
