@@ -1,5 +1,6 @@
 classdef rawDataPacket
     properties
+        location = Point(0, 0);
         EPC = '';   % string
         Antenna = 1;
         Frequency = 924.38e6; % Hz
@@ -10,7 +11,8 @@ classdef rawDataPacket
     end
     
     methods
-        function tag = rawDataPacket(epc)
+        function tag = rawDataPacket(epc, location)
+            tag.location = PointObj(location);
             tag.EPC = epc;
             tag.Antenna = 1;
             tag.Frequency = 924.38e6;

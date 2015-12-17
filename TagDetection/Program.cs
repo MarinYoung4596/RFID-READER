@@ -267,7 +267,7 @@ namespace SimpleLLRPSample
                     ** Here's a straightforward conversion.  NOTE: to be exact here, we
                     ** should use the channel index to find the channel frequency/wavelength.
                     ** For now, I'll just assume the wavelength corresponds to mid-band at
-                    ** 0.32786885245901635 meters. The formula below eports meters per second.
+                    ** 0.32786885245901635 meters. The formula below reports meters per second.
                     ** Note that 360 degrees equals only 1/2 a wavelength of motion because
                     ** we are computing the round trip phase change.
                     **
@@ -277,6 +277,15 @@ namespace SimpleLLRPSample
                     **
                     ** which should net out to estimated tag velocity in meters/second */
 
+                    /*
+                        phase1 + 2*k1*pi = 2*pi*(2*d1/wavelength)       (1)
+                        phase2 + 2*k2*pi = 2*pi*(2*d2/wavelength)       (2)
+                    (1) - (2):
+                        delta_phase + 2*pi*delta_k = 2*pi*(2*delta_d/wavelength)
+                    ==> delta_d = (wavelength/(4*pi)) * (delta_phase + 2*pi*delta_k)
+                    ==> velocity = delta_d / delta_t = 
+                    */
+                    double waveLength = 300000000 / (920.63 + (_readerPara.ChannelIndex-1)*0.25);
                     velocity = ((phaseChangeDegrees * 0.5 * 0.327868852 * 1000000) / (360 * timeChangeUsec));
 
                     retVal = true;
@@ -1153,6 +1162,7 @@ namespace SimpleLLRPSample
              * [16: 924.38]
              */
             _readerPara.ChannelIndex = 16;
+        
             _readerPara.Attenuation = 0;
             _readerPara.ModeIndex = 1000;
             _readerPara.HopTableIndex = 0;
@@ -1186,8 +1196,8 @@ namespace SimpleLLRPSample
 
         public static void Main()
         {
-            string IPAddress = "192.168.1.222";
-            string fpath = @"C:\Users\MY\Desktop\";
+            string IPAddress = "169.254.1.1";
+            string fpath = @"C:\Users\MarinYoung\Desktop\";
             if (!Directory.Exists(fpath))
                 Directory.CreateDirectory(fpath);
 

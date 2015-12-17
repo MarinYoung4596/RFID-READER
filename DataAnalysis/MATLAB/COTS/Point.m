@@ -9,6 +9,12 @@ classdef Point
             p.x = xx;
             p.y = yy;
         end
+        
+        function p = PointObj(dot)
+            p.x = dot.x;
+            p.y = dot.y;
+        end
+            
     end
 end
 
