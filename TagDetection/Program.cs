@@ -31,7 +31,7 @@ namespace SimpleLLRPSample
         private static int _reportCount = 0;
         private static int _eventCount = 0;
         private static int _directionCount = 0;
-        private static UInt32 _modelNumber = 0;
+        private static uint _modelNumber = 0;
 
         // state Data collected to use in the velocity algorithm
         private static string _currentEpcData;
