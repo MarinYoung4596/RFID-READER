@@ -19,7 +19,6 @@ classdef rawDataPacket
             tag.DopplerShift = [];
             tag.PhaseInRadian = [];
             tag.RSSI = [];
-            % tag.count = 0;
         end
     end
     

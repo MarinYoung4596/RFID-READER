@@ -2,10 +2,9 @@ clear all;
 close all;
 clc;
 
-filePath = 'C:\Users\MarinYoung\Desktop\DATA\2ndPos\';
-csvFileName = '20151217_154256';
-file = [filePath, csvFileName];
-file = [file, '.csv'];
+filePath = 'C:\Users\MarinYoung\Desktop\DATA\4thPos\';
+csvFileName = '20151217_155314';
+file = [filePath, csvFileName, '.csv'];
 
 sheet = 1;
 xlRange = 'A2:J10000';
@@ -13,7 +12,7 @@ xlRange = 'A2:J10000';
 len = length(ndata);    % length of rows
 
 
-Antenna = Point(-0.6, 1.2);
+Antenna = Point(-0.6, 0.6);
 tagA = rawDataPacket('FFFFFFFFFFFFFFFFFFFF0001', Point(0.16,  0));
 tagB = rawDataPacket('FFFFFFFFFFFFFFFFFFFF0002', Point(0.08,  0));
 tagC = rawDataPacket('FFFFFFFFFFFFFFFFFFFF0003', Point(0,     0));
@@ -37,11 +36,11 @@ for i = 1 : 1 : len
         case char(tagE.EPC)
             tagE.PhaseInRadian = [tagE.PhaseInRadian, phase_in_radian];
     end
-end 
+end
 
 
 figure;
-range = [-3, 3, 0, 3];
+range = [-3, 3, -3, 3];
 line([0, 0], [0, 3]);
 localize(tagA, tagC, 'k', range);
 localize(tagB, tagD, 'r', range);
