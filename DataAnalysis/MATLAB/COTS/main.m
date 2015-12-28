@@ -2,8 +2,8 @@ clear all;
 close all;
 clc;
 
-filePath = 'C:\Users\MarinYoung\Desktop\DATA\4thPos\';
-csvFileName = '20151217_155314';
+filePath = 'C:\Users\MarinYoung\OneDrive\Documents\DATA\1227\4\';
+csvFileName = '20151227_154625';
 file = [filePath, csvFileName, '.csv'];
 
 sheet = 1;
@@ -12,12 +12,12 @@ xlRange = 'A2:J10000';
 len = length(ndata);    % length of rows
 
 
-Antenna = Point(-0.6, 0.6);
-tagA = rawDataPacket('FFFFFFFFFFFFFFFFFFFF0001', Point(0.16,  0));
-tagB = rawDataPacket('FFFFFFFFFFFFFFFFFFFF0002', Point(0.08,  0));
-tagC = rawDataPacket('FFFFFFFFFFFFFFFFFFFF0003', Point(0,     0));
-tagD = rawDataPacket('FFFFFFFFFFFFFFFFFFFF0004', Point(-0.08, 0));
-tagE = rawDataPacket('FFFFFFFFFFFFFFFFFFFF0005', Point(-0.16, 0));
+Antenna = Point(-114, 114);
+tagA = rawDataPacket('AAAA0004', Point(16,  0));
+tagB = rawDataPacket('BBBB0005', Point(8,  0));
+tagC = rawDataPacket('CCCC0001', Point(0,     0));
+tagD = rawDataPacket('DDDD0003', Point(-8, 0));
+tagE = rawDataPacket('EEEE0002', Point(-16, 0));
 
 for i = 1 : 1 : len
     epc = alldata(i, 1);
@@ -25,7 +25,6 @@ for i = 1 : 1 : len
     
     switch char(epc)
         case char(tagA.EPC)
-            %append(tagA.PhaseInRadian, phase_in_radian);
             tagA.PhaseInRadian = [tagA.PhaseInRadian, phase_in_radian];
         case char(tagB.EPC)
             tagB.PhaseInRadian = [tagB.PhaseInRadian, phase_in_radian];
@@ -40,11 +39,15 @@ end
 
 
 figure;
-range = [-3, 3, -3, 3];
-line([0, 0], [0, 3]);
-localize(tagA, tagC, 'k', range);
-localize(tagB, tagD, 'r', range);
-localize(tagC, tagE, 'b', range);
+range = [-200, 200, -300, 300];
+localize(tagA, tagB, 'k', range); % black
+localize(tagB, tagC, 'r', range); % red
+localize(tagC, tagD, 'b', range); % blue
+localize(tagD, tagE, 'g', range); % green
+% 
+localize(tagA, tagC, 'c', range);
+localize(tagB, tagD, 'm', range);
+localize(tagC, tagE, 'y', range);
 
 
 plot(Antenna.x, Antenna.y, 'o', 'Color', 'black');
