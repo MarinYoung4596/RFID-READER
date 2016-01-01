@@ -2,8 +2,8 @@ clear all;
 close all;
 clc;
 
-filePath = 'C:\Users\MarinYoung\OneDrive\Documents\DATA\1227\4\';
-csvFileName = '20151227_154625';
+filePath = 'C:\Users\MarinYoung\OneDrive\Documents\DATA\1227\3\';
+csvFileName = '20151227_154245';
 file = [filePath, csvFileName, '.csv'];
 
 sheet = 1;
@@ -12,7 +12,7 @@ xlRange = 'A2:J10000';
 len = length(ndata);    % length of rows
 
 
-Antenna = Point(-114, 114);
+Antenna = Point(-64, 177);
 tagA = rawDataPacket('AAAA0004', Point(16,  0));
 tagB = rawDataPacket('BBBB0005', Point(8,  0));
 tagC = rawDataPacket('CCCC0001', Point(0,     0));
@@ -39,7 +39,7 @@ end
 
 
 figure;
-range = [-200, 200, -300, 300];
+range = [-200, 200, 0, 400];
 localize(tagA, tagB, 'k', range); % black
 localize(tagB, tagC, 'r', range); % red
 localize(tagC, tagD, 'b', range); % blue

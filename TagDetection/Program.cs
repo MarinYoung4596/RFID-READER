@@ -175,7 +175,7 @@ namespace SimpleLLRPSample
                         _currentReadTime = msg.TagReportData[i].FirstSeenTimestampUTC.Microseconds;
                         data += " time: " + _currentReadTime.ToString();
                     }
-
+                    
                     if (msg.TagReportData[i].Custom != null)
                     {
                         for (int x = 0; x < msg.TagReportData[i].Custom.Length; x++)
