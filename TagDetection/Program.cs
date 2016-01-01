@@ -1217,13 +1217,14 @@ namespace SimpleLLRPSample
 
         public static void setReader_PARM()
         {
+            if (_readerPara == null) return;
             /*
              * Set Channel Index, 16 in total, which represents different frequency (MHz). Namely,
              * [1: 920.38]
              * [2: 920.88]
              * ...... 
              * [16: 924.38]
-             */
+            */
             _readerPara.ChannelIndex = 16;
             _readerPara.TransmitPower = 32.5; // range from 10 dbm to 32.5 dbm
             _readerPara.ModeIndex = 1000;
