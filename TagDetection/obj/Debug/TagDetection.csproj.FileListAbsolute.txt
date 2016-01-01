@@ -32,3 +32,7 @@ C:\Users\MarinYoung\Documents\RFID-READER\TagDetection\bin\Debug\LLRP.Impinj.pdb
 C:\Users\MarinYoung\Documents\RFID-READER\TagDetection\bin\Debug\log4net.pdb
 C:\Users\MarinYoung\Documents\RFID-READER\TagDetection\bin\Debug\log4net.xml
 C:\Users\MarinYoung\Documents\RFID-READER\TagDetection\obj\Debug\TagDetection.csprojResolveAssemblyReference.cache
+C:\Users\MY\Documents\RFID READER\TagDetection\bin\Debug\LLRP.dll
+C:\Users\MY\Documents\RFID READER\TagDetection\bin\Debug\LLRP.Impinj.dll
+C:\Users\MY\Documents\RFID READER\TagDetection\bin\Debug\LLRP.pdb
+C:\Users\MY\Documents\RFID READER\TagDetection\bin\Debug\LLRP.Impinj.pdb

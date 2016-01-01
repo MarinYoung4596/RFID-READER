@@ -17,9 +17,8 @@ classdef rawDataPacket
             tag.Antenna = 1;
             tag.Frequency = 924.38e6;
             tag.DopplerShift = [];
-            tag.PhaseInRadian = 0;
+            tag.PhaseInRadian = [];
             tag.RSSI = [];
-            tag.count = 0;
         end
     end
     

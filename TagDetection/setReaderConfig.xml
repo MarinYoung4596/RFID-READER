@@ -8,7 +8,7 @@
  MessageID="0">
   <ResetToFactoryDefault>true</ResetToFactoryDefault>
   <AntennaConfiguration>
-    <AntennaID>0</AntennaID>
+    <AntennaId>0</AntennaId>
     <C1G2InventoryCommand>
       <TagInventoryStateAware>false</TagInventoryStateAware>
       <C1G2RFControl>
@@ -43,7 +43,7 @@
       <EnableROSpecID>false</EnableROSpecID>
       <EnableSpecIndex>false</EnableSpecIndex>
       <EnableInventoryParameterSpecID>false</EnableInventoryParameterSpecID>
-      <EnableAntennaID>true</EnableAntennaID>
+      <EnableAntennaId>true</EnableAntennaId>
       <EnableChannelIndex>true</EnableChannelIndex>
       <EnablePeakRSSI>true</EnablePeakRSSI>
       <EnableFirstSeenTimestamp>true</EnableFirstSeenTimestamp>
