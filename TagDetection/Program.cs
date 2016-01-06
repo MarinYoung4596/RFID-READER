@@ -11,8 +11,6 @@
  */
 
 using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Threading;
 using System.IO;
 using System.Data;
@@ -20,9 +18,6 @@ using System.Data;
 using Org.LLRP.LTK.LLRPV1;
 using Org.LLRP.LTK.LLRPV1.Impinj;
 using Org.LLRP.LTK.LLRPV1.DataType;
-using log4net;
-
-using SimpleLLRPSample;
 
 namespace SimpleLLRPSample
 {
@@ -31,23 +26,23 @@ namespace SimpleLLRPSample
         private static int _reportCount = 0;
         private static int _eventCount = 0;
         private static int _directionCount = 0;
-        private static UInt32 _modelNumber = 0;
+        private static uint _modelNumber = 0;
 
         // state Data collected to use in the velocity algorithm
         private static string _currentEpcData;
-        private static UInt16 _currentAntennaId;
-        private static UInt16 _currentChannelIndex;
-        private static UInt16 _currentRfPhase;
-        private static UInt64 _currentReadTime;
-        private static Int16 _currentPeakRssi;
-        private static Int16 _currentDopplerFrequency;
+        private static ushort _currentAntennaId;
+        private static ushort _currentChannelIndex;
+        private static ushort _currentRfPhase;
+        private static ulong _currentReadTime;
+        private static short _currentPeakRssi;
+        private static short _currentDopplerFrequency;
 
         // state Data collected to use in the velocity algorithm
         private static string _lastEpcData;
-        private static UInt16 _lastAntennaId;
-        private static UInt16 _lastChannelIndex;
-        private static UInt16 _lastRfPhase;
-        private static UInt64 _lastReadTime;
+        private static ushort _lastAntennaId;
+        private static ushort _lastChannelIndex;
+        private static ushort _lastRfPhase;
+        private static ulong _lastReadTime;
 
         private static double _filteredVelocity;
 
@@ -84,16 +79,16 @@ namespace SimpleLLRPSample
 
             // Initialize Column Name
             DataRow row = Data.NewRow();
-            row["EPC"] = "EPC";
-            row["Time"] = "Timestamp";
-            row["Antenna"] = "Antenna";
-            row["Tx Power"] = "TxPower";
+            row["EPC"]               = "EPC";
+            row["Doppler Shift"]     = "DopplerShift(Hz)";
+            row["Time"]              = "Timestamp";
+            row["Antenna"]           = "Antenna";
+            row["Tx Power"]          = "TxPower";
             row["Current Frequency"] = "Frequency(MHz)";
-            row["PeakRSSI"] = "RSS(dbm)";
-            row["Phase Angle"] = "PhaseAngle(Radian)";
-            row["Phase"] = "PhaseAngle(Degree)";
-            row["Doppler Shift"] = "DopplerShift(Hz)";
-            row["Velocity"] = "Velocity";
+            row["PeakRSSI"]          = "RSS(dbm)";
+            row["Phase Angle"]       = "PhaseAngle(Radian)";
+            row["Phase"]             = "PhaseAngle(Degree)";
+            row["Velocity"]          = "Velocity";
             Data.Rows.Add(row);
         }
 
@@ -173,7 +168,7 @@ namespace SimpleLLRPSample
                         _currentReadTime = msg.TagReportData[i].FirstSeenTimestampUTC.Microseconds;
                         //data += " time: " + _currentReadTime.ToString();
                     }
-
+                    
                     if (msg.TagReportData[i].Custom != null)
                     {
                         for (int x = 0; x < msg.TagReportData[i].Custom.Length; x++)
@@ -219,11 +214,10 @@ namespace SimpleLLRPSample
                             velData += "     ";
 
                         //velData += " Velocity: " + _filteredVelocity.ToString("F2");
-                        data += " Velocity: " + _filteredVelocity.ToString();
+                        //data += " Velocity: " + _filteredVelocity.ToString();
                     }
 
                     Console.WriteLine(data);
-                    //Console.WriteLine(velData);
 
                 } // end for
             } // end if
@@ -1225,8 +1219,8 @@ namespace SimpleLLRPSample
              * ...... 
              * [16: 924.38]
             */
-            _readerPara.ChannelIndex = 16;
-            _readerPara.TransmitPower = 32.5; // range from 10 dbm to 32.5 dbm
+            _readerPara.ChannelIndex = 10;
+            _readerPara.TransmitPower = 25; // range from 10 dbm to 32.5 dbm
             _readerPara.ModeIndex = 1000;
             _readerPara.HopTableIndex = 0;
             _readerPara.PeriodicTriggerValue = 0;
@@ -1259,17 +1253,17 @@ namespace SimpleLLRPSample
 
         public static void Main()
         {
-            string IPAddress = "169.254.1.1";
-            string fpath = @"C:\Users\MY\Desktop\20160101\random\";
+            const string IPAddress = "192.168.1.222";
+            const string fpath = @"C:\Users\MY\Desktop\20160105\pos4\";
             if (!Directory.Exists(fpath))
                 Directory.CreateDirectory(fpath);
 
             DateTime dt = DateTime.Now;
             string strCurrentTime = dt.ToString("yyyyMMdd_HHmmss");
-            string fname = strCurrentTime + ".csv";
+            string fname = "power25channal10_"+ strCurrentTime + ".csv";
 
             // set Data collection time (s)
-            UInt16 sustainTime = 100;
+            const ushort sustainTime = 20;
 
             Console.WriteLine("Impinj C# LTK.NET RFID Application DocSample4 Reader ----- " + IPAddress + "\n");
 
@@ -1298,9 +1292,9 @@ namespace SimpleLLRPSample
             Stop_RoSpec();
             ResetReaderToFactoryDefault();
 
-            Console.WriteLine("  Calculated " + _directionCount + " Velocity Estimates.");
-            Console.WriteLine("  Received " + _reportCount + " Tag Reports.");
-            Console.WriteLine("  Received " + _eventCount + " Events.");
+            Console.WriteLine("  Calculated {0} Velocity Estimates.", _directionCount);
+            Console.WriteLine("  Received {0} Tag Reports.", _reportCount);
+            Console.WriteLine("  Received {0} Events.", _eventCount);
 
             // clean up the Reader
             reader_CleanSubscription();

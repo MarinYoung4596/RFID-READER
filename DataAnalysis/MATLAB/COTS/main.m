@@ -2,8 +2,8 @@ clear all;
 close all;
 clc;
 
-filePath = 'C:\Users\MY\Desktop\20160101\13\';
-csvFileName = '20160101_155026';
+filePath = 'C:\Users\MarinYoung\OneDrive\Documents\DATA\20160105\pos2\';
+csvFileName = 'power25channal10_20160105_172649';
 file = [filePath, csvFileName, '.csv'];
 
 sheet = 1;
@@ -12,11 +12,12 @@ xlRange = 'A2:J10000';
 len = length(ndata);    % length of rows
 
 
-Antenna = Point(67, 149);
-tagA = rawDataPacket('AAAA0004', Point(16,  0));
-tagB = rawDataPacket('BBBB0005', Point(8,  0));
-tagC = rawDataPacket('CCCC0001', Point(0,     0));
-tagD = rawDataPacket('DDDD0003', Point(-8, 0));
+
+Antenna = Point(102, 427);
+tagA = rawDataPacket('2FFF32ED', Point(0,  0));
+tagB = rawDataPacket('FFFFFFFFFFFFFFFFFFFF8C73', Point(-16,   0));
+tagC = rawDataPacket('FFFFFFFFFFFFFFFFFFFF2F1A', Point(-32,   0));
+tagD = rawDataPacket('DDDD0003', Point(-8,  0));
 tagE = rawDataPacket('EEEE0002', Point(-16, 0));
 
 for i = 1 : 1 : len
@@ -40,14 +41,15 @@ end
 
 figure;
 range = [-200, 200, 0, 400];
-localize(tagA, tagB, 'k', range); % black
-localize(tagB, tagC, 'r', range); % red
-localize(tagC, tagD, 'b', range); % blue
-localize(tagD, tagE, 'g', range); % green
-% 
-% localize(tagA, tagC, 'c', range);
-% localize(tagB, tagD, 'm', range);
-% localize(tagC, tagE, 'y', range);
+
+% QuarterWavelength_plotHyperbola(tagA, tagB, 'k', range); % black
+% QuarterWavelength_plotHyperbola(tagB, tagC, 'r', range); % red
+% QuarterWavelength_plotHyperbola(tagC, tagD, 'b', range); % blue
+% QuarterWavelength_plotHyperbola(tagD, tagE, 'g', range); % green
+
+HalfWavelength_plotHyperbola(tagA, tagB, 'c', range, 1); 
+HalfWavelength_plotHyperbola(tagB, tagC, 'm', range, 1);
+% HalfWavelength_plotHyperbola(tagC, tagE, 'y', range, -1); % yellow
 
 
 plot(Antenna.x, Antenna.y, 'o', 'Color', 'black');

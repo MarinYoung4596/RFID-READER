@@ -26,8 +26,8 @@ namespace TagGesture
         //新建一个dataTable
         static DataTable DataDS = new DataTable();
 
-        static string filePath = "E:\\Gesture\\TagGesture_v4_shopping\\results_zhendong\\0521\\";
-        static string fileName = "phone_ding_zhendong_2.csv";         //3_8tag_40cm_150cm_threeP_20.csv
+        static string filePath = @"C:\Users\MY\Desktop\20160105\";
+        static string fileName = "pos4_freq923125power25_3.csv";         //3_8tag_40cm_150cm_threeP_20.csv
 
         static CsvStreamWriter CsvWriter = new CsvStreamWriter(filePath + fileName);
         static double txPowerValue = 0;
@@ -90,10 +90,12 @@ namespace TagGesture
             //TagsEPC.Add("AAAA AAAA AAAA AAAA AAAA E00B", 2);
             //TagsEPC.Add("AAAA AAAA AAAA AAAA AAAA E002", 3);
             //TagsEPC.Add("AAAA AAAA AAAA AAAA AAAA E0B0", 4);
-            TagsEPC.Add("2222 2222 2222 2222 2222 2B5C", 0);
+            TagsEPC.Add("FFFF FFFF FFFF FFFF FFFF 8C73", 0);
             //TagsEPC.Add("AAAA AAAA AAAA AAAA AAAA E024", 1);
             //TagsEPC.Add("AAAA AAAA AAAA AAAA AAAA E012", 2);
-            TagsEPC.Add("AAAA AAAA AAAA AAAA AAAA E0XX", 3);
+            TagsEPC.Add("FFFF FFFF FFFF FFFF FFFF 2F1A", 1);
+            TagsEPC.Add("FFFF FFFF FFFF FFFF FFFF 0006", 2);
+            TagsEPC.Add("2FFF 32ED", 3);
 
 
 
@@ -102,10 +104,13 @@ namespace TagGesture
             //TagNames.Add("AAAA AAAA AAAA AAAA AAAA E00B");
             //TagNames.Add("AAAA AAAA AAAA AAAA AAAA E002");
             //TagNames.Add("AAAA AAAA AAAA AAAA AAAA E0B0");
-            TagNames.Add("2222 2222 2222 2222 2222 2B5C");
+            TagNames.Add("FFFF FFFF FFFF FFFF FFFF 8C73");
+
             //TagNames.Add("AAAA AAAA AAAA AAAA AAAA E024");
             //TagNames.Add("AAAA AAAA AAAA AAAA AAAA E012");
-            TagNames.Add("AAAA AAAA AAAA AAAA AAAA 00XX");
+            TagNames.Add("FFFF FFFF FFFF FFFF FFFF 2F1A");
+            TagNames.Add("FFFF FFFF FFFF FFFF FFFF 0006");
+            TagNames.Add("2FFF 32ED");
         }
 
 
@@ -139,11 +144,11 @@ namespace TagGesture
                 settings.Antennas.DisableAll();
                 settings.Antennas.GetAntenna(2).IsEnabled = false;
                 //settings.Antennas.EnableAll();
-                settings.Antennas.GetAntenna(2).TxPowerInDbm = 32;
+                settings.Antennas.GetAntenna(2).TxPowerInDbm = 25;
 
                 settings.Antennas.GetAntenna(1).IsEnabled = true;
                 ////settings.Antennas.EnableAll();
-                settings.Antennas.GetAntenna(1).TxPowerInDbm = 32;
+                settings.Antennas.GetAntenna(1).TxPowerInDbm = 25;
 
                 //settings.Antennas.GetAntenna(1).RxSensitivityInDbm = -55;
                 //settings.Antennas.GetAntenna(2).TxPowerInDbm = 32;
@@ -366,7 +371,7 @@ namespace TagGesture
             // This filter is 16 bits long (one word).
             //settings.Filters.TagFilter1.BitCount = 68;
 
-            settings.Filters.TagFilter1.TagMask = "22222222222222222222"; //AAAAAAAAAAAAAAAAAAAAE
+            settings.Filters.TagFilter1.TagMask = "FFFFFFFFFFFFFFFFFFFF"; //AAAAAAAAAAAAAAAAAAAAE
             // This filter is 16 bits long (one word).
             settings.Filters.TagFilter1.BitCount = 80;
 
@@ -376,6 +381,7 @@ namespace TagGesture
             // CRC and control bits. BitPointers.Epc is a helper
             // enumeration you can use, so you don't have to remember this.
             settings.Filters.TagFilter2.BitPointer = BitPointers.Epc;
+
             // Only match tags with EPCs that start with "3008"
             settings.Filters.TagFilter2.TagMask = "E2009027";
             // This filter is 16 bits long (one word).
@@ -402,12 +408,12 @@ namespace TagGesture
                 //freqList.Add(922.375);
                 //freqList.Add(922.625);
                 //freqList.Add(922.875);
-                //freqList.Add(923.125);
+                freqList.Add(923.125);
                 //freqList.Add(923.375);
                 //freqList.Add(923.625);
                 //freqList.Add(923.875);
                 //freqList.Add(924.125);
-                freqList.Add(924.375);
+                //freqList.Add(924.375);
                 // 其他符合标准的频率值
                 // 921.625;921.875;922.125;922.375;922.625;922.875;923.125;923.375;923.625;923.875;924.125;924.375;
                 settings.TxFrequenciesInMhz = freqList;

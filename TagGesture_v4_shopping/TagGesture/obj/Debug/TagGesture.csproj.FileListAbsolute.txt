@@ -58,3 +58,18 @@ C:\Users\MY\Desktop\TagGesture_v4_shopping\TagGesture\bin\Debug\Impinj.OctaneSdk
 C:\Users\MY\Desktop\TagGesture_v4_shopping\TagGesture\bin\Debug\Impinj.OctaneSdk.xml
 C:\Users\MY\Desktop\TagGesture_v4_shopping\TagGesture\bin\Debug\LLRP.pdb
 C:\Users\MY\Desktop\TagGesture_v4_shopping\TagGesture\bin\Debug\LLRP.Impinj.pdb
+C:\Users\MY\Documents\RFID READER\TagGesture_v4_shopping\TagGesture\bin\Debug\TagGesture.exe.config
+C:\Users\MY\Documents\RFID READER\TagGesture_v4_shopping\TagGesture\obj\Debug\TagGesture.exe
+C:\Users\MY\Documents\RFID READER\TagGesture_v4_shopping\TagGesture\obj\Debug\TagGesture.pdb
+C:\Users\MY\Documents\RFID READER\TagGesture_v4_shopping\TagGesture\bin\Debug\TagGesture.exe
+C:\Users\MY\Documents\RFID READER\TagGesture_v4_shopping\TagGesture\bin\Debug\TagGesture.pdb
+C:\Users\MY\Documents\RFID READER\TagGesture_v4_shopping\TagGesture\bin\Debug\DopplerVisualization.exe
+C:\Users\MY\Documents\RFID READER\TagGesture_v4_shopping\TagGesture\bin\Debug\Impinj.OctaneSdk.dll
+C:\Users\MY\Documents\RFID READER\TagGesture_v4_shopping\TagGesture\bin\Debug\LLRP.dll
+C:\Users\MY\Documents\RFID READER\TagGesture_v4_shopping\TagGesture\bin\Debug\LLRP.Impinj.dll
+C:\Users\MY\Documents\RFID READER\TagGesture_v4_shopping\TagGesture\bin\Debug\DopplerVisualization.pdb
+C:\Users\MY\Documents\RFID READER\TagGesture_v4_shopping\TagGesture\bin\Debug\Impinj.OctaneSdk.pdb
+C:\Users\MY\Documents\RFID READER\TagGesture_v4_shopping\TagGesture\bin\Debug\Impinj.OctaneSdk.xml
+C:\Users\MY\Documents\RFID READER\TagGesture_v4_shopping\TagGesture\bin\Debug\LLRP.pdb
+C:\Users\MY\Documents\RFID READER\TagGesture_v4_shopping\TagGesture\bin\Debug\LLRP.Impinj.pdb
+C:\Users\MY\Documents\RFID READER\TagGesture_v4_shopping\TagGesture\obj\Debug\TagGesture.csprojResolveAssemblyReference.cache
