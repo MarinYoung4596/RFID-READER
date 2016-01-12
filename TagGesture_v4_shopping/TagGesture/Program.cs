@@ -26,8 +26,8 @@ namespace TagGesture
         //新建一个dataTable
         static DataTable DataDS = new DataTable();
 
-        static string filePath = @"C:\Users\MY\Desktop\20160105\";
-        static string fileName = "pos4_freq923125power25_3.csv";         //3_8tag_40cm_150cm_threeP_20.csv
+        static string filePath = @"C:\Users\MY\Desktop\20160106\pos1\";
+        static string fileName = "antennaPos2_freq924375power325_Tag1Pos1plus32.csv";
 
         static CsvStreamWriter CsvWriter = new CsvStreamWriter(filePath + fileName);
         static double txPowerValue = 0;
@@ -38,76 +38,13 @@ namespace TagGesture
 
         static void InitTagsEPC()
         {
-            //nearby
-            //TagsEPC.Add("FFFF FFFF FFFF FFFF FFFF E062", 0);
-            //TagsEPC.Add("FFFF FFFF FFFF FFFF FFFF E016", 1);
-            //TagsEPC.Add("FFFF FFFF FFFF FFFF FFFF E04B", 2);
-            //TagsEPC.Add("FFFF FFFF FFFF FFFF FFFF E06C", 3);
-            //TagsEPC.Add("FFFF FFFF FFFF FFFF FFFF E024", 4);
-            //TagsEPC.Add("FFFF FFFF FFFF FFFF FFFF E102", 5);
-            //TagsEPC.Add("FFFF FFFF FFFF FFFF FFFF E086", 6);
-            //TagsEPC.Add("FFFF FFFF FFFF FFFF FFFF E06B", 7);
-            //TagsEPC.Add("FFFF FFFF FFFF FFFF FFFF E0BE", 8);
-            //TagsEPC.Add("FFFF FFFF FFFF FFFF FFFF E10A", 9);
-            //TagsEPC.Add("FFFF FFFF FFFF FFFF FFFF E100", 10);
-            //TagsEPC.Add("FFFF FFFF FFFF FFFF FFFF E064", 11);
-            //TagsEPC.Add("FFFF FFFF FFFF FFFF FFFF E094", 12);
-            //TagsEPC.Add("FFFF FFFF FFFF FFFF FFFF E097", 13);
-            //TagsEPC.Add("FFFF FFFF FFFF FFFF FFFF E061", 14);
-            //TagsEPC.Add("FFFF FFFF FFFF FFFF FFFF E0A3", 15);
-            //TagsEPC.Add("FFFF FFFF FFFF FFFF FFFF E072", 16);
-            //TagsEPC.Add("FFFF FFFF FFFF FFFF FFFF E069", 17);
-            //TagsEPC.Add("FFFF FFFF FFFF FFFF FFFF E051", 18);
-            //TagsEPC.Add("FFFF FFFF FFFF FFFF FFFF E096", 19);
-            //TagsEPC.Add("FFFF FFFF FFFF FFFF FFFF E0XX", 20);
-
-            //TagNames.Add("FFFF FFFF FFFF FFFF FFFF E062");
-            //TagNames.Add("FFFF FFFF FFFF FFFF FFFF E016");
-            //TagNames.Add("FFFF FFFF FFFF FFFF FFFF E04B");
-            //TagNames.Add("FFFF FFFF FFFF FFFF FFFF E06C");
-            //TagNames.Add("FFFF FFFF FFFF FFFF FFFF E024");
-            //TagNames.Add("FFFF FFFF FFFF FFFF FFFF E102");
-            //TagNames.Add("FFFF FFFF FFFF FFFF FFFF E086");
-            //TagNames.Add("FFFF FFFF FFFF FFFF FFFF E06B");
-            //TagNames.Add("FFFF FFFF FFFF FFFF FFFF E0BE");
-            //TagNames.Add("FFFF FFFF FFFF FFFF FFFF E10A");
-            //TagNames.Add("FFFF FFFF FFFF FFFF FFFF E100");
-            //TagNames.Add("FFFF FFFF FFFF FFFF FFFF E064");
-            //TagNames.Add("FFFF FFFF FFFF FFFF FFFF E094");
-            //TagNames.Add("FFFF FFFF FFFF FFFF FFFF E097");
-            //TagNames.Add("FFFF FFFF FFFF FFFF FFFF E061");
-            //TagNames.Add("FFFF FFFF FFFF FFFF FFFF E0A3");
-            //TagNames.Add("FFFF FFFF FFFF FFFF FFFF E072");
-            //TagNames.Add("FFFF FFFF FFFF FFFF FFFF E069");
-            //TagNames.Add("FFFF FFFF FFFF FFFF FFFF E051");
-            //TagNames.Add("FFFF FFFF FFFF FFFF FFFF E096");
-            //TagNames.Add("FFFF FFFF FFFF FFFF FFFF E0XX");
-
-
-
-            //TagsEPC.Add("AAAA AAAA AAAA AAAA AAAA E0C4", 0);
-            //TagsEPC.Add("AAAA AAAA AAAA AAAA AAAA E10A", 1);
-            //TagsEPC.Add("AAAA AAAA AAAA AAAA AAAA E00B", 2);
-            //TagsEPC.Add("AAAA AAAA AAAA AAAA AAAA E002", 3);
-            //TagsEPC.Add("AAAA AAAA AAAA AAAA AAAA E0B0", 4);
-            TagsEPC.Add("FFFF FFFF FFFF FFFF FFFF 8C73", 0);
-            //TagsEPC.Add("AAAA AAAA AAAA AAAA AAAA E024", 1);
-            //TagsEPC.Add("AAAA AAAA AAAA AAAA AAAA E012", 2);
+            TagsEPC.Add("CCCC 0004", 0);
             TagsEPC.Add("FFFF FFFF FFFF FFFF FFFF 2F1A", 1);
             TagsEPC.Add("FFFF FFFF FFFF FFFF FFFF 0006", 2);
             TagsEPC.Add("2FFF 32ED", 3);
 
 
-
-            //TagNames.Add("AAAA AAAA AAAA AAAA AAAA E0C4");
-            //TagNames.Add("AAAA AAAA AAAA AAAA AAAA E10A");
-            //TagNames.Add("AAAA AAAA AAAA AAAA AAAA E00B");
-            //TagNames.Add("AAAA AAAA AAAA AAAA AAAA E002");
-            //TagNames.Add("AAAA AAAA AAAA AAAA AAAA E0B0");
-            TagNames.Add("FFFF FFFF FFFF FFFF FFFF 8C73");
-
-            //TagNames.Add("AAAA AAAA AAAA AAAA AAAA E024");
-            //TagNames.Add("AAAA AAAA AAAA AAAA AAAA E012");
+            TagNames.Add("CCCC 0004");
             TagNames.Add("FFFF FFFF FFFF FFFF FFFF 2F1A");
             TagNames.Add("FFFF FFFF FFFF FFFF FFFF 0006");
             TagNames.Add("2FFF 32ED");
@@ -146,12 +83,13 @@ namespace TagGesture
                 //settings.Antennas.EnableAll();
                 settings.Antennas.GetAntenna(2).TxPowerInDbm = 25;
 
+                // use antenna #1
                 settings.Antennas.GetAntenna(1).IsEnabled = true;
                 ////settings.Antennas.EnableAll();
-                settings.Antennas.GetAntenna(1).TxPowerInDbm = 25;
+                settings.Antennas.GetAntenna(1).TxPowerInDbm = 32.5;
 
                 //settings.Antennas.GetAntenna(1).RxSensitivityInDbm = -55;
-                //settings.Antennas.GetAntenna(2).TxPowerInDbm = 32;
+
                 // settings.Antennas.GetAntenna(2).RxSensitivityInDbm = -55;
 
 
@@ -408,12 +346,12 @@ namespace TagGesture
                 //freqList.Add(922.375);
                 //freqList.Add(922.625);
                 //freqList.Add(922.875);
-                freqList.Add(923.125);
+                //freqList.Add(923.125);
                 //freqList.Add(923.375);
                 //freqList.Add(923.625);
                 //freqList.Add(923.875);
                 //freqList.Add(924.125);
-                //freqList.Add(924.375);
+                freqList.Add(924.375);
                 // 其他符合标准的频率值
                 // 921.625;921.875;922.125;922.375;922.625;922.875;923.125;923.375;923.625;923.875;924.125;924.375;
                 settings.TxFrequenciesInMhz = freqList;

@@ -8,6 +8,8 @@
  * [2]  https://support.impinj.com/hc/en-us/articles/202756348-Get-Low-Level-Reader-Data-with-LLRP
  * [3]  https://support.impinj.com/hc/en-us/articles/204383817-Latest-firmware-utilities-and-development-libraries-for-Impinj-readers-and-gateways
  * [4]  https://github.com/pengyuzhang/Blink/tree/master/ReaderLibrary
+ * [5]  Speedway revolution reader application note: Low Level User Data Support
+        https://support.impinj.com/hc/en-us/articles/202755318-Application-Note-Low-Level-User-Data-Support
  */
 
 using System;
@@ -83,7 +85,7 @@ namespace SimpleLLRPSample
             row["Doppler Shift"]     = "DopplerShift(Hz)";
             row["Time"]              = "Timestamp";
             row["Antenna"]           = "Antenna";
-            row["Tx Power"]          = "TxPower";
+            row["Tx Power"]          = "TxPower(mW)";
             row["Current Frequency"] = "Frequency(MHz)";
             row["PeakRSSI"]          = "RSS(dbm)";
             row["Phase Angle"]       = "PhaseAngle(Radian)";
@@ -101,7 +103,7 @@ namespace SimpleLLRPSample
             row["Time"] = _currentReadTime;
             row["Antenna"] = _currentAntennaId;
             row["TX Power"] = _readerPara.TransmitPower; // Power(dbm) [10 : 0.25 : 32.5], 90 different values.
-            row["Current Frequency"] = 920.63 + (_readerPara.ChannelIndex - 1) * 0.25; // Frequency(MHz)[920.63 : 0.25 : 924.38], 16 different channels
+            row["Current Frequency"] = 920.625 + (_readerPara.ChannelIndex - 1) * 0.25; // Frequency(MHz)[920.625 : 0.25 : 924.375], 16 different channels
             row["PeakRSSI"] = _currentPeakRssi / 100;
             row["Phase Angle"] = _currentRfPhase * Convert2Radian;   //(_currentRfPhase / 4096) * 2 * Math.PI;
             row["Phase"] = _currentRfPhase * Convert2Degree;         //(_currentRfPhase / 4096) * 360;
@@ -1219,8 +1221,8 @@ namespace SimpleLLRPSample
              * ...... 
              * [16: 924.38]
             */
-            _readerPara.ChannelIndex = 10;
-            _readerPara.TransmitPower = 25; // range from 10 dbm to 32.5 dbm
+            _readerPara.ChannelIndex = 16;
+            _readerPara.TransmitPower = 32.5; // range from 10 dbm to 32.5 dbm
             _readerPara.ModeIndex = 1000;
             _readerPara.HopTableIndex = 0;
             _readerPara.PeriodicTriggerValue = 0;
@@ -1253,17 +1255,17 @@ namespace SimpleLLRPSample
 
         public static void Main()
         {
-            const string IPAddress = "192.168.1.222";
-            const string fpath = @"C:\Users\MY\Desktop\20160105\pos4\";
+            const string IPAddress = "speedwayr-11-3B-8B.local";
+            const string fpath = @"C:\Users\MY\Desktop\20160106\pos3\";
             if (!Directory.Exists(fpath))
                 Directory.CreateDirectory(fpath);
 
             DateTime dt = DateTime.Now;
-            string strCurrentTime = dt.ToString("yyyyMMdd_HHmmss");
-            string fname = "power25channal10_"+ strCurrentTime + ".csv";
+            string strCurrentTime = dt.ToString("yyyyMMddHHmmss");
+            string fname = "moving_tag"+ strCurrentTime + ".csv";
 
             // set Data collection time (s)
-            const ushort sustainTime = 20;
+            const ushort sustainTime = 30;
 
             Console.WriteLine("Impinj C# LTK.NET RFID Application DocSample4 Reader ----- " + IPAddress + "\n");
 
@@ -1277,11 +1279,9 @@ namespace SimpleLLRPSample
             ResetReaderToFactoryDefault();
             GetReaderCapabilities();
             Enable_Impinj_Extensions();
-            //SetReaderConfig_WithXML();
-            SetReaderConfig();
-
-            //Add_RoSpec_WithXML();
-            Add_RoSpec();
+            
+            SetReaderConfig();  //SetReaderConfig_WithXML();
+            Add_RoSpec();       //Add_RoSpec_WithXML();
             Enable_RoSpec();
             //Start_RoSpec();
 
