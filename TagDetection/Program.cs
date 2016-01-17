@@ -1230,7 +1230,7 @@ namespace SimpleLLRPSample
             _readerPara.TagTransitTime = 0;
             _readerPara.ReaderSensitivity = 1;
             // each value in the array map to Antenna 1, Antenna 2, Antenna 3, Antenna 4, respectively.
-            _readerPara.AntennaId = new bool[] { true, false, false, false };
+            _readerPara.AntennaId = new bool[] { true, true, false, false };
         }
 
         #endregion
@@ -1255,17 +1255,17 @@ namespace SimpleLLRPSample
 
         public static void Main()
         {
-            const string IPAddress = "speedwayr-11-3B-8B.local";
-            const string fpath = @"C:\Users\MY\Desktop\20160106\pos3\";
+            const string IPAddress = "192.168.1.222";
+            const string fpath = @"C:\Users\MY\Desktop\20160116\";
             if (!Directory.Exists(fpath))
                 Directory.CreateDirectory(fpath);
 
             DateTime dt = DateTime.Now;
             string strCurrentTime = dt.ToString("yyyyMMddHHmmss");
-            string fname = "moving_tag"+ strCurrentTime + ".csv";
+            string fname = "test "+ strCurrentTime + ".csv";
 
             // set Data collection time (s)
-            const ushort sustainTime = 30;
+            const ushort sustainTime = 200;
 
             Console.WriteLine("Impinj C# LTK.NET RFID Application DocSample4 Reader ----- " + IPAddress + "\n");
 
