@@ -36,3 +36,16 @@ C:\Users\MY\Documents\RFID READER\TagDetection\bin\Debug\LLRP.dll
 C:\Users\MY\Documents\RFID READER\TagDetection\bin\Debug\LLRP.Impinj.dll
 C:\Users\MY\Documents\RFID READER\TagDetection\bin\Debug\LLRP.pdb
 C:\Users\MY\Documents\RFID READER\TagDetection\bin\Debug\LLRP.Impinj.pdb
+C:\Users\Marin\Documents\RFID-READER\TagDetection\bin\Debug\DocSample4.exe.config
+C:\Users\Marin\Documents\RFID-READER\TagDetection\obj\Debug\DocSample4.exe
+C:\Users\Marin\Documents\RFID-READER\TagDetection\obj\Debug\DocSample4.pdb
+C:\Users\Marin\Documents\RFID-READER\TagDetection\bin\Debug\DocSample4.exe
+C:\Users\Marin\Documents\RFID-READER\TagDetection\bin\Debug\DocSample4.pdb
+C:\Users\Marin\Documents\RFID-READER\TagDetection\bin\Debug\LLRP.dll
+C:\Users\Marin\Documents\RFID-READER\TagDetection\bin\Debug\LLRP.Impinj.dll
+C:\Users\Marin\Documents\RFID-READER\TagDetection\bin\Debug\log4net.dll
+C:\Users\Marin\Documents\RFID-READER\TagDetection\bin\Debug\LLRP.pdb
+C:\Users\Marin\Documents\RFID-READER\TagDetection\bin\Debug\LLRP.Impinj.pdb
+C:\Users\Marin\Documents\RFID-READER\TagDetection\bin\Debug\log4net.pdb
+C:\Users\Marin\Documents\RFID-READER\TagDetection\bin\Debug\log4net.xml
+C:\Users\Marin\Documents\RFID-READER\TagDetection\obj\Debug\TagDetection.csprojResolveAssemblyReference.cache

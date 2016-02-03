@@ -25,9 +25,13 @@ namespace TagGesture
         static ImpinjReader reader = new ImpinjReader();
         //新建一个dataTable
         static DataTable DataDS = new DataTable();
-
-        static string filePath = @"C:\Users\MY\Desktop\20160106\pos1\";
-        static string fileName = "antennaPos2_freq924375power325_Tag1Pos1plus32.csv";
+        private static double power = 32.5;
+        private static double freq = 924.375;
+        private static double dist = 2.70;
+        
+        static string filePath = @"C:\Users\Marin\OneDrive\Documents\DATA\20160129\moving tag\";
+        private static string fileName = "A_M8_"+String.Format("{0}", freq*1000)+".csv";
+        //"r420_dist_"+String.Format("{0}", dist*100)+".csv"; //+String.Format("{00}", power)
 
         static CsvStreamWriter CsvWriter = new CsvStreamWriter(filePath + fileName);
         static double txPowerValue = 0;
@@ -36,18 +40,20 @@ namespace TagGesture
         static Hashtable TagsEPC = new Hashtable();
         static List<String> TagNames = new List<String>();
 
+        
+
         static void InitTagsEPC()
         {
-            TagsEPC.Add("CCCC 0004", 0);
-            TagsEPC.Add("FFFF FFFF FFFF FFFF FFFF 2F1A", 1);
-            TagsEPC.Add("FFFF FFFF FFFF FFFF FFFF 0006", 2);
-            TagsEPC.Add("2FFF 32ED", 3);
+            TagsEPC.Add("FFFF 2222", 0);
+            //TagsEPC.Add("FFFF FFFF FFFF FFFF FFFF 2F1A", 1);
+            //TagsEPC.Add("FFFF FFFF FFFF FFFF FFFF 0006", 2);
+            //TagsEPC.Add("2FFF 32ED", 3);
 
 
-            TagNames.Add("CCCC 0004");
-            TagNames.Add("FFFF FFFF FFFF FFFF FFFF 2F1A");
-            TagNames.Add("FFFF FFFF FFFF FFFF FFFF 0006");
-            TagNames.Add("2FFF 32ED");
+            TagNames.Add("CC05");
+            //TagNames.Add("FFFF FFFF FFFF FFFF FFFF 2F1A");
+            //TagNames.Add("FFFF FFFF FFFF FFFF FFFF 0006");
+            //TagNames.Add("2FFF 32ED");
         }
 
 
@@ -86,7 +92,7 @@ namespace TagGesture
                 // use antenna #1
                 settings.Antennas.GetAntenna(1).IsEnabled = true;
                 ////settings.Antennas.EnableAll();
-                settings.Antennas.GetAntenna(1).TxPowerInDbm = 32.5;
+                settings.Antennas.GetAntenna(1).TxPowerInDbm = power;
 
                 //settings.Antennas.GetAntenna(1).RxSensitivityInDbm = -55;
 
@@ -94,10 +100,10 @@ namespace TagGesture
 
 
                 //settings.ReaderMode = ReaderMode.AutoSetDenseReader;
-                //settings.SearchMode = SearchMode.DualTarget;
-                //settings.Session = 2;
+                settings.SearchMode = SearchMode.DualTarget;
+                settings.Session = 2;  // 0~3  or 1~4
                 // ReaderMode must be set to DenseReaderM4 or DenseReaderM8.
-                settings.ReaderMode = ReaderMode.DenseReaderM4;
+                settings.ReaderMode = ReaderMode.DenseReaderM8;
 
                 // 每读取一个tag就report
                 // Send a tag report for every tag read.
@@ -141,12 +147,12 @@ namespace TagGesture
 
             reader.Start();
             DSForm = new FormRealTime(TagNames);
-            Application.Run(DSForm);
+            //Application.Run(DSForm);
 
             // Start reading.
 
 
-            //Thread.Sleep(20000); //收集31s数据
+            Thread.Sleep(10000); //收集31s数据
 
             // Wait for the user to press enter.
             //Console.WriteLine("Press enter to exit.");
@@ -175,7 +181,7 @@ namespace TagGesture
                 reader.Start();
 
                 // Wait
-                Thread.Sleep(1000);
+                Thread.Sleep(5000);
 
                 // Stop the reader.
                 reader.Stop();
@@ -206,8 +212,7 @@ namespace TagGesture
                 //    phaseAngle = tag.PhaseAngleInRadians;
                 //}
                 phaseAngle = tag.PhaseAngleInRadians;
-                Console.WriteLine("EPC : {0}  RSS ：{1} ",
-                                        tag.Epc, tag.PeakRssiInDbm);
+                Console.WriteLine(@"EPC : {0}	RSS : {1}	Phase : {2}", arg0: tag.Epc, arg1: tag.PeakRssiInDbm, arg2: tag.PhaseAngleInRadians);
 
 
                 DataRow row = DataDS.NewRow();
@@ -237,7 +242,6 @@ namespace TagGesture
         {
             // 创建表中的列
             DataDS.Columns.Add("EPC");
-            DataDS.Columns.Add("Doppler Shift");
             DataDS.Columns.Add("Time");
             DataDS.Columns.Add("Antenna");
             DataDS.Columns.Add("Tx Power");
@@ -245,6 +249,7 @@ namespace TagGesture
             DataDS.Columns.Add("PeakRSSI");
             DataDS.Columns.Add("Phase Angle");
             DataDS.Columns.Add("Phase");
+            DataDS.Columns.Add("Doppler Shift");
 
             // 初始化列名
             DataRow row = DataDS.NewRow();
@@ -278,7 +283,7 @@ namespace TagGesture
         {
 
             Console.WriteLine("Press enter to exit.");
-            Console.ReadLine();
+            //Console.ReadLine();
             // 写CSV文件
             CsvWriter.AddData(DataDS, 1);
             CsvWriter.Save();
@@ -287,9 +292,8 @@ namespace TagGesture
             // Disconnect from the reader.
             reader.Disconnect();
             Console.WriteLine(DataDS.Rows.Count);
-            Console.ReadLine();
-
-
+            //Console.ReadLine();
+            System.Environment.Exit(1);
         }
 
         static public void filterTags(Settings settings)
@@ -331,6 +335,7 @@ namespace TagGesture
 
         }
 
+
         static public int fixFrequency(FeatureSet features, Settings settings)
         {
             // Specify the transmit frequencies to use.
@@ -340,6 +345,10 @@ namespace TagGesture
 
             if (!features.IsHoppingRegion)
             {
+               //freqList.Add(920.625);
+                //freqList.Add(920.875);
+                //freqList.Add(921.125);
+                //freqList.Add(921.375);
                 //freqList.Add(921.625);
                 //freqList.Add(921.875);
                 //freqList.Add(922.125);
@@ -351,7 +360,7 @@ namespace TagGesture
                 //freqList.Add(923.625);
                 //freqList.Add(923.875);
                 //freqList.Add(924.125);
-                freqList.Add(924.375);
+               freqList.Add(freq);
                 // 其他符合标准的频率值
                 // 921.625;921.875;922.125;922.375;922.625;922.875;923.125;923.375;923.625;923.875;924.125;924.375;
                 settings.TxFrequenciesInMhz = freqList;
@@ -363,8 +372,6 @@ namespace TagGesture
                 return -1;
             }
         }
-
-
 
     }
 }

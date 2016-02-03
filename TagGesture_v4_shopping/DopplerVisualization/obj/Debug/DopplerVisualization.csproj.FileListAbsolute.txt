@@ -51,3 +51,12 @@ C:\Users\MY\Documents\RFID READER\TagGesture_v4_shopping\DopplerVisualization\ob
 C:\Users\MY\Documents\RFID READER\TagGesture_v4_shopping\DopplerVisualization\obj\Debug\DopplerVisualization.csproj.GenerateResource.Cache
 C:\Users\MY\Documents\RFID READER\TagGesture_v4_shopping\DopplerVisualization\obj\Debug\DopplerVisualization.exe
 C:\Users\MY\Documents\RFID READER\TagGesture_v4_shopping\DopplerVisualization\obj\Debug\DopplerVisualization.pdb
+C:\Users\Marin\Documents\RFID-READER\TagGesture_v4_shopping\DopplerVisualization\bin\Debug\DopplerVisualization.exe.config
+C:\Users\Marin\Documents\RFID-READER\TagGesture_v4_shopping\DopplerVisualization\bin\Debug\DopplerVisualization.exe
+C:\Users\Marin\Documents\RFID-READER\TagGesture_v4_shopping\DopplerVisualization\bin\Debug\DopplerVisualization.pdb
+C:\Users\Marin\Documents\RFID-READER\TagGesture_v4_shopping\DopplerVisualization\obj\Debug\DopplerVisualization.csprojResolveAssemblyReference.cache
+C:\Users\Marin\Documents\RFID-READER\TagGesture_v4_shopping\DopplerVisualization\obj\Debug\DopplerVisualization.FormRealTime.resources
+C:\Users\Marin\Documents\RFID-READER\TagGesture_v4_shopping\DopplerVisualization\obj\Debug\DopplerVisualization.Properties.Resources.resources
+C:\Users\Marin\Documents\RFID-READER\TagGesture_v4_shopping\DopplerVisualization\obj\Debug\DopplerVisualization.csproj.GenerateResource.Cache
+C:\Users\Marin\Documents\RFID-READER\TagGesture_v4_shopping\DopplerVisualization\obj\Debug\DopplerVisualization.exe
+C:\Users\Marin\Documents\RFID-READER\TagGesture_v4_shopping\DopplerVisualization\obj\Debug\DopplerVisualization.pdb

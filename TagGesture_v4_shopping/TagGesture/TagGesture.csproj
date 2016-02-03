@@ -32,7 +32,8 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Impinj.OctaneSdk">
+    <Reference Include="Impinj.OctaneSdk, Version=2.2.0.240, Culture=neutral, PublicKeyToken=05c02f4d2efc38d8, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
       <HintPath>..\lib\Impinj.OctaneSdk.dll</HintPath>
     </Reference>
     <Reference Include="LLRP">

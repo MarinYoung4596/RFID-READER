@@ -31,6 +31,7 @@
         <EmptyFieldTimeout>10000</EmptyFieldTimeout>
         <FieldPingInterval>200</FieldPingInterval>
       </Impinj:ImpinjLowDutyCycle>
+    
     </C1G2InventoryCommand>
   </AntennaConfiguration>
   <ROReportSpec>

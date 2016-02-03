@@ -9,8 +9,20 @@
         Title="MainWindow" Height="350" Width="525">
     <Grid>
         <Menu x:Name="Menu" Height="20" VerticalAlignment="Top" Margin="0,0,280,0">
-            <MenuItem Header="File"></MenuItem>
-            <MenuItem Header="Settings"></MenuItem>
+            <MenuItem Header="File">
+                <MenuItem Header="Copy"/>
+                <MenuItem Header="Save"/>
+            </MenuItem>
+            <MenuItem Header="Debug">
+                <MenuItem Header="Connect to Reader"/>
+                <MenuItem Header="Start"/>
+                <MenuItem Header="Stop"/>
+            </MenuItem>
+            <MenuItem Header="Settings">
+                <MenuItem Header="Settings"/>
+                <MenuItem Header="Help"/>
+                <MenuItem Header="About"/>
+            </MenuItem>
 
         </Menu>
         <ToolBar x:Name="ToolBar" RenderTransformOrigin="6.875,0.692" Margin="242,2,187,299">
@@ -53,7 +65,7 @@
                 </Style>
             </DataGrid.RowStyle>
             <DataGrid.Columns>
-                <DataGridCheckBoxColumn Binding="{x:Null}" ClipboardContentBinding="{x:Null}" Header="Epc" HeaderStringFormat="Epc"/>
+                <DataGridCheckBoxColumn Binding="{x:Null}" ClipboardContentBinding="{x:Null}" Header="EPC" HeaderStringFormat="Epc"/>
                 <DataGridCheckBoxColumn Binding="{x:Null}" ClipboardContentBinding="{x:Null}" Header="TimeStamp" HeaderStringFormat="Timestamp"/>
                 <DataGridCheckBoxColumn Binding="{x:Null}" ClipboardContentBinding="{x:Null}" Header="TxPower" HeaderStringFormat="TxPower"/>
                 <DataGridCheckBoxColumn Binding="{x:Null}" ClipboardContentBinding="{x:Null}" Header="Frequency" HeaderStringFormat="Frequency"/>
@@ -65,11 +77,46 @@
 
         </DataGrid>
 
-        
-        <TextBox x:Name="textBox" HorizontalAlignment="Left" Height="19" Margin="10,165,0,0" TextWrapping="Wrap" Text="Epc: " VerticalAlignment="Top" Width="33"/>
-        <ListBox x:Name="ListBox" HorizontalAlignment="Left" Height="19" VerticalAlignment="Top" Width="100" Margin="48,165,0,0"/>
-        
-        
+
+        <TextBox x:Name="TextBox" HorizontalAlignment="Left" Height="19" Margin="10,165,0,0" TextWrapping="Wrap" Text="Epc: " VerticalAlignment="Top" Width="33"/>
+        <ListBox x:Name="ListBox" HorizontalAlignment="Left" Height="19" VerticalAlignment="Top" Width="106" Margin="48,165,0,0"/>
+
+        <d3:ChartPlotter x:Name="Rssi" Margin="10,180,360,5" Width="140" Height="100">
+            <d3:ChartPlotter.VerticalAxis>
+                <d3:VerticalIntegerAxis />
+            </d3:ChartPlotter.VerticalAxis>
+            <d3:ChartPlotter.HorizontalAxis>
+                <d3:HorizontalIntegerAxis />
+            </d3:ChartPlotter.HorizontalAxis>
+            <d3:Header Content="Rssi Change Tendency" FontSize="10"/>
+            <d3:VerticalAxisTitle Content="RSSI" FontSize="10"/>
+            <d3:HorizontalAxisTitle Content="Timestamp" FontSize="10"/>
+        </d3:ChartPlotter>
+
+        <d3:ChartPlotter x:Name="Phase" Margin="188,197,189,22" Width="140" Height="100">
+            <d3:ChartPlotter.VerticalAxis>
+                <d3:VerticalIntegerAxis />
+            </d3:ChartPlotter.VerticalAxis>
+            <d3:ChartPlotter.HorizontalAxis>
+                <d3:HorizontalIntegerAxis />
+            </d3:ChartPlotter.HorizontalAxis>
+            <d3:Header Content="Phase Change Tendency" FontSize="10"/>
+            <d3:VerticalAxisTitle Content="Phase" FontSize="10"/>
+            <d3:HorizontalAxisTitle Content="Timestamp" FontSize="10"/>
+        </d3:ChartPlotter>
+
+        <d3:ChartPlotter x:Name="DopplerShift" Margin="350,180,10,5" Width="140" Height="100">
+            <d3:ChartPlotter.VerticalAxis>
+                <d3:VerticalIntegerAxis />
+            </d3:ChartPlotter.VerticalAxis>
+            <d3:ChartPlotter.HorizontalAxis>
+                <d3:HorizontalIntegerAxis />
+            </d3:ChartPlotter.HorizontalAxis>
+            <d3:Header Content="Dopper Shift Tendency" FontSize="10"/>
+            <d3:VerticalAxisTitle Content="Doppler Shift" FontSize="10"/>
+            <d3:HorizontalAxisTitle Content="Timestamp" FontSize="10"/>
+        </d3:ChartPlotter>
+
         <StatusBar Height="13" VerticalAlignment="Top" Margin="0,306,0,0"/>
     </Grid>
 </Window>

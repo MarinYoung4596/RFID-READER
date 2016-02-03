@@ -36,7 +36,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="DynamicDataDisplay">
-      <HintPath>..\..\..\..\Downloads\DynamicDataDisplay v0.3 Binaries &amp; Samples\DynamicDataDisplay\DynamicDataDisplay.dll</HintPath>
+      <HintPath>.\DynamicDataDisplay.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />
@@ -56,6 +56,10 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="TagInfo.cs" />
+    <Page Include="App.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>

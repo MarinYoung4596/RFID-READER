@@ -55,14 +55,6 @@
     </When>
     <Otherwise>
       <ItemGroup>
-        <Reference Include="LLRP, Culture=neutral, processorArchitecture=MSIL">
-          <SpecificVersion>False</SpecificVersion>
-          <HintPath>lib\LLRP.dll</HintPath>
-        </Reference>
-        <Reference Include="LLRP.Impinj, Culture=neutral, processorArchitecture=MSIL">
-          <SpecificVersion>False</SpecificVersion>
-          <HintPath>lib\LLRP.Impinj.dll</HintPath>
-        </Reference>
         <Reference Include="System" />
         <Reference Include="System.Data" />
         <Reference Include="System.Xml" />
@@ -86,6 +78,14 @@
     </Content>
   </ItemGroup>
   <ItemGroup>
+    <Reference Include="LLRP, Version=10.20.0.240, Culture=neutral, PublicKeyToken=450cec67a1cde3d4, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\LLRP.dll</HintPath>
+    </Reference>
+    <Reference Include="LLRP.Impinj, Version=10.20.0.240, Culture=neutral, PublicKeyToken=450cec67a1cde3d4, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\LLRP.Impinj.dll</HintPath>
+    </Reference>
     <Reference Include="log4net">
       <HintPath>log4net\log4net.dll</HintPath>
     </Reference>
