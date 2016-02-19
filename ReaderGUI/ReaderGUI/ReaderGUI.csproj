@@ -36,7 +36,16 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="DynamicDataDisplay">
-      <HintPath>.\DynamicDataDisplay.dll</HintPath>
+      <HintPath>lib\DynamicDataDisplay.dll</HintPath>
+    </Reference>
+    <Reference Include="LLRP">
+      <HintPath>lib\LLRP.dll</HintPath>
+    </Reference>
+    <Reference Include="LLRP.Impinj">
+      <HintPath>lib\LLRP.Impinj.dll</HintPath>
+    </Reference>
+    <Reference Include="log4net">
+      <HintPath>lib\log4net.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />
@@ -55,10 +64,24 @@
     <Reference Include="PresentationFramework" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CsvStreamWriter.cs" />
+    <Compile Include="DialogBox.xaml.cs">
+      <DependentUpon>DialogBox.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="LogHelper.cs" />
+    <Compile Include="Program.cs" />
+    <Compile Include="Reader.cs" />
+    <Compile Include="Settings.xaml.cs">
+      <DependentUpon>Settings.xaml</DependentUpon>
+    </Compile>
     <Compile Include="TagInfo.cs" />
     <Page Include="App.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
+    </Page>
+    <Page Include="DialogBox.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
@@ -68,6 +91,10 @@
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Page Include="Settings.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs">
@@ -110,6 +137,12 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="src\ic_stop_black_48dp.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="src\ic_link.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="src\ic_clear.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

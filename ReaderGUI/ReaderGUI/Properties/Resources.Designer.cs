@@ -63,6 +63,26 @@ namespace ReaderGUI.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
+        internal static System.Drawing.Bitmap ic_clear {
+            get {
+                object obj = ResourceManager.GetObject("ic_clear", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap ic_link {
+            get {
+                object obj = ResourceManager.GetObject("ic_link", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
         internal static System.Drawing.Bitmap ic_play_arrow_black_48dp {
             get {
                 object obj = ResourceManager.GetObject("ic_play_arrow_black_48dp", resourceCulture);

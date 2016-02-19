@@ -10,6 +10,7 @@
  * [4]  https://github.com/pengyuzhang/Blink/tree/master/ReaderLibrary
  * [5]  Speedway revolution reader application note: Low Level User Data Support
         https://support.impinj.com/hc/en-us/articles/202755318-Application-Note-Low-Level-User-Data-Support
+ * [6]  https://support.impinj.com/hc/en-us/articles/202756368-Optimizing-Tag-Throughput-Using-ReaderMode
  */
 
 using System;
@@ -28,7 +29,6 @@ namespace SimpleLLRPSample
         private static int _reportCount = 0;
         private static int _eventCount = 0;
         private static int _directionCount = 0;
-        private static uint _modelNumber = 0;
 
         // state Data collected to use in the velocity algorithm
         private static string _currentEpcData;
@@ -202,7 +202,7 @@ namespace SimpleLLRPSample
 
                     // estimate the velocity and print a filtered version
                     double velocity;
-                    if (calculateVelocity(out velocity))
+                    if (CalculateVelocity(out velocity))
                     {
                         _directionCount++;
                         /* keep a filtered value. Use a 1 pole IIR here for simplicity */
@@ -225,7 +225,7 @@ namespace SimpleLLRPSample
             } // end if
         }
 
-        public static bool calculateVelocity(out double velocity)
+        public static bool CalculateVelocity(out double velocity)
         {
             bool retVal = false;
             velocity = 0;
@@ -485,43 +485,28 @@ namespace SimpleLLRPSample
         {
             Console.Write("Adding RoSpec ----- ");
             MSG_ERROR_MESSAGE msg_err;
-            MSG_ADD_ROSPEC msg = new MSG_ADD_ROSPEC
-            {
-                ROSpec = new PARAM_ROSpec
-                {
-                    CurrentState = ENUM_ROSpecState.Disabled,
-                    ROSpecID = 1111,
-                    ROBoundarySpec = new PARAM_ROBoundarySpec
-                    {
-                        ROSpecStartTrigger = new PARAM_ROSpecStartTrigger
-                        {
-                            ROSpecStartTriggerType = ENUM_ROSpecStartTriggerType.Immediate
-                        }
-                    }
-                }
-            };
-
-            // Reader Operation Spec (ROSpec)
-            // ROSpec must be disabled by default
-            // The ROSpec ID can be set to any number
-            // You must use the same ID when enabling this ROSpec
-
             // ROBoundarySpec
             // Specifies the start and stop triggers for the ROSpec
             // Immediate start trigger
             // The Reader will start reading tags as soon as the ROSpec is enabled
             // No stop trigger. Keep reading tags until the ROSpec is disabled.
-            msg.ROSpec.ROBoundarySpec.ROSpecStopTrigger = new PARAM_ROSpecStopTrigger
-            {
-                ROSpecStopTriggerType = ENUM_ROSpecStopTriggerType.Null
-            };
+            MSG_ADD_ROSPEC msg = new MSG_ADD_ROSPEC();
+            msg.ROSpec = new PARAM_ROSpec();
+            msg.ROSpec.CurrentState = ENUM_ROSpecState.Disabled;
+            msg.ROSpec.ROSpecID = 1111;
+            msg.ROSpec.ROBoundarySpec = new PARAM_ROBoundarySpec();
+            msg.ROSpec.ROBoundarySpec.ROSpecStartTrigger = new PARAM_ROSpecStartTrigger();
+            msg.ROSpec.ROBoundarySpec.ROSpecStartTrigger.ROSpecStartTriggerType = ENUM_ROSpecStartTriggerType.Immediate;
+            msg.ROSpec.ROBoundarySpec.ROSpecStopTrigger = new PARAM_ROSpecStopTrigger();
+            msg.ROSpec.ROBoundarySpec.ROSpecStopTrigger.ROSpecStopTriggerType = ENUM_ROSpecStopTriggerType.Null;
 
             // Antenna Inventory Spec (AISpec)
             // Specifies which antennas and protocol to use
             msg.ROSpec.SpecParameter = new UNION_SpecParameter();
 
             // Antenna inventory operation
-            PARAM_AISpec aiSpec = new PARAM_AISpec {AntennaIDs = new UInt16Array()};
+            PARAM_AISpec aiSpec = new PARAM_AISpec();
+            aiSpec.AntennaIDs = new UInt16Array();
             // Enable all antennas
             for (ushort i = 1; i <= _readerPara.AntennaId.Length; ++i )
             {
@@ -529,17 +514,13 @@ namespace SimpleLLRPSample
                     aiSpec.AntennaIDs.Add(i);
             }
             // No AISpec stop trigger. It stops when the ROSpec stops.
-            aiSpec.AISpecStopTrigger = new PARAM_AISpecStopTrigger
-            {
-                AISpecStopTriggerType = ENUM_AISpecStopTriggerType.Null
-            };
+            aiSpec.AISpecStopTrigger = new PARAM_AISpecStopTrigger();
+            aiSpec.AISpecStopTrigger.AISpecStopTriggerType = ENUM_AISpecStopTriggerType.Null;
 
             aiSpec.InventoryParameterSpec = new PARAM_InventoryParameterSpec[1];
-            aiSpec.InventoryParameterSpec[0] = new PARAM_InventoryParameterSpec
-            {
-                InventoryParameterSpecID = 1234,
-                ProtocolID = ENUM_AirProtocols.EPCGlobalClass1Gen2
-            };
+            aiSpec.InventoryParameterSpec[0] = new PARAM_InventoryParameterSpec();
+            aiSpec.InventoryParameterSpec[0].InventoryParameterSpecID = 1234;
+            aiSpec.InventoryParameterSpec[0].ProtocolID = ENUM_AirProtocols.EPCGlobalClass1Gen2;
 
             msg.ROSpec.SpecParameter.Add(aiSpec);
 
@@ -547,52 +528,36 @@ namespace SimpleLLRPSample
             // N: Unsigned Short Integer. This is the number of TagReportData Parameters used in ROReportTrigger = 1 and 2.
             // If N = 0, there is no limit on the number of TagReportData Parameters.
             // This field SHALL be ignored when ROReportTrigger = 0.
-            msg.ROSpec.ROReportSpec = new PARAM_ROReportSpec
-            {
-                ROReportTrigger = ENUM_ROReportTriggerType.Upon_N_Tags_Or_End_Of_ROSpec,
-                N = 1,
-                TagReportContentSelector = new PARAM_TagReportContentSelector
-                {
-                    EnableAccessSpecID = true,
-                    EnableAntennaID = true,
-                    EnableChannelIndex = true,
-                    EnableFirstSeenTimestamp = true,
-                    EnableInventoryParameterSpecID = true,
-                    EnableLastSeenTimestamp = true,
-                    EnablePeakRSSI = true,
-                    EnableROSpecID = true,
-                    EnableSpecIndex = true,
-                    EnableTagSeenCount = true
-                }
-            };
+            msg.ROSpec.ROReportSpec = new PARAM_ROReportSpec();
+            msg.ROSpec.ROReportSpec.ROReportTrigger = ENUM_ROReportTriggerType.Upon_N_Tags_Or_End_Of_ROSpec;
+            msg.ROSpec.ROReportSpec.N = 1;
+            msg.ROSpec.ROReportSpec.TagReportContentSelector = new PARAM_TagReportContentSelector();
+            msg.ROSpec.ROReportSpec.TagReportContentSelector.EnableAccessSpecID = true;
+            msg.ROSpec.ROReportSpec.TagReportContentSelector.EnableAntennaID = true;
+            msg.ROSpec.ROReportSpec.TagReportContentSelector.EnableChannelIndex = true;
+            msg.ROSpec.ROReportSpec.TagReportContentSelector.EnableFirstSeenTimestamp = true;
+            msg.ROSpec.ROReportSpec.TagReportContentSelector.EnableInventoryParameterSpecID = true;
+            msg.ROSpec.ROReportSpec.TagReportContentSelector.EnableLastSeenTimestamp = true;
+            msg.ROSpec.ROReportSpec.TagReportContentSelector.EnablePeakRSSI = true;
+            msg.ROSpec.ROReportSpec.TagReportContentSelector.EnableROSpecID = true;
+            msg.ROSpec.ROReportSpec.TagReportContentSelector.EnableSpecIndex = true;
+            msg.ROSpec.ROReportSpec.TagReportContentSelector.EnableTagSeenCount = true;
+           
             // Send a report for every tag read
-
-
-
             // Add 1)RF Phase Angle;  2)Peak RSSI  3)RF Doppler Frequency  fields to the report
-            PARAM_ImpinjTagReportContentSelector contentSelector = new PARAM_ImpinjTagReportContentSelector
-            {
-                ImpinjEnableSerializedTID = new PARAM_ImpinjEnableSerializedTID
-                {
-                    SerializedTIDMode = ENUM_ImpinjSerializedTIDMode.Enabled
-                },
-                ImpinjEnableRFPhaseAngle = new PARAM_ImpinjEnableRFPhaseAngle
-                {
-                    RFPhaseAngleMode = ENUM_ImpinjRFPhaseAngleMode.Enabled
-                },
-                ImpinjEnablePeakRSSI = new PARAM_ImpinjEnablePeakRSSI
-                {
-                    PeakRSSIMode = ENUM_ImpinjPeakRSSIMode.Enabled
-                },
-                ImpinjEnableRFDopplerFrequency = new PARAM_ImpinjEnableRFDopplerFrequency
-                {
-                    RFDopplerFrequencyMode = ENUM_ImpinjRFDopplerFrequencyMode.Enabled
-                }
-            };
+            PARAM_ImpinjTagReportContentSelector contentSelector = new PARAM_ImpinjTagReportContentSelector();
+            contentSelector.ImpinjEnableSerializedTID = new PARAM_ImpinjEnableSerializedTID();
+            contentSelector.ImpinjEnableSerializedTID.SerializedTIDMode = ENUM_ImpinjSerializedTIDMode.Enabled;
+            contentSelector.ImpinjEnableRFPhaseAngle = new PARAM_ImpinjEnableRFPhaseAngle();
+            contentSelector.ImpinjEnableRFPhaseAngle.RFPhaseAngleMode = ENUM_ImpinjRFPhaseAngleMode.Enabled;
+            contentSelector.ImpinjEnablePeakRSSI = new PARAM_ImpinjEnablePeakRSSI();
+            contentSelector.ImpinjEnablePeakRSSI.PeakRSSIMode = ENUM_ImpinjPeakRSSIMode.Enabled;
+            contentSelector.ImpinjEnableRFDopplerFrequency = new PARAM_ImpinjEnableRFDopplerFrequency();
+            contentSelector.ImpinjEnableRFDopplerFrequency.RFDopplerFrequencyMode = ENUM_ImpinjRFDopplerFrequencyMode.Enabled;
             // These are custom fields, so they get added this way
             msg.ROSpec.ROReportSpec.Custom.Add(contentSelector);
 
-            MSG_ADD_ROSPEC_RESPONSE rsp = Reader.ADD_ROSPEC(msg, out msg_err, 12000);
+            MSG_ADD_ROSPEC_RESPONSE rsp = Reader.ADD_ROSPEC(msg, out msg_err, 2000);
             if (rsp != null)
             {
                 if (rsp.LLRPStatus.StatusCode != ENUM_StatusCode.M_Success)
@@ -657,7 +622,7 @@ namespace SimpleLLRPSample
 
             // Communicate that message to the Reader
             MSG_ERROR_MESSAGE msg_err;
-            MSG_ADD_ROSPEC_RESPONSE rsp = Reader.ADD_ROSPEC(msg, out msg_err, 12000);
+            MSG_ADD_ROSPEC_RESPONSE rsp = Reader.ADD_ROSPEC(msg, out msg_err, 2000);
             if (rsp != null)
             {
                 if (rsp.LLRPStatus.StatusCode != ENUM_StatusCode.M_Success)
@@ -723,7 +688,7 @@ namespace SimpleLLRPSample
             MSG_START_ROSPEC msg = new MSG_START_ROSPEC();
             MSG_ERROR_MESSAGE msg_err;
             msg.ROSpecID = 1111; // this better match the RoSpec we created above
-            MSG_START_ROSPEC_RESPONSE rsp = Reader.START_ROSPEC(msg, out msg_err, 12000);
+            MSG_START_ROSPEC_RESPONSE rsp = Reader.START_ROSPEC(msg, out msg_err, 2000);
             if (rsp != null)
             {
                 if (rsp.LLRPStatus.StatusCode != ENUM_StatusCode.M_Success)
@@ -756,7 +721,7 @@ namespace SimpleLLRPSample
             MSG_STOP_ROSPEC msg = new MSG_STOP_ROSPEC();
             MSG_ERROR_MESSAGE msg_err;
             msg.ROSpecID = 1111; // this better match the RoSpec we created above
-            MSG_STOP_ROSPEC_RESPONSE rsp = Reader.STOP_ROSPEC(msg, out msg_err, 12000);
+            MSG_STOP_ROSPEC_RESPONSE rsp = Reader.STOP_ROSPEC(msg, out msg_err, 2000);
             if (rsp != null)
             {
                 if (rsp.LLRPStatus.StatusCode != ENUM_StatusCode.M_Success)
@@ -787,7 +752,7 @@ namespace SimpleLLRPSample
             Console.Write("Getting RoSpec ----- ");
             MSG_GET_ROSPECS msg = new MSG_GET_ROSPECS();
             MSG_ERROR_MESSAGE msg_err;
-            MSG_GET_ROSPECS_RESPONSE rsp = Reader.GET_ROSPECS(msg, out msg_err, 3000);
+            MSG_GET_ROSPECS_RESPONSE rsp = Reader.GET_ROSPECS(msg, out msg_err, 2000);
             if (rsp != null)
             {
                 if (rsp.LLRPStatus.StatusCode != ENUM_StatusCode.M_Success)
@@ -849,7 +814,7 @@ namespace SimpleLLRPSample
             // Communicate that message to the Reader
             MSG_SET_READER_CONFIG msg = (MSG_SET_READER_CONFIG)obj;
             MSG_ERROR_MESSAGE msg_err;
-            MSG_SET_READER_CONFIG_RESPONSE rsp = Reader.SET_READER_CONFIG(msg, out msg_err, 12000);
+            MSG_SET_READER_CONFIG_RESPONSE rsp = Reader.SET_READER_CONFIG(msg, out msg_err, 2000);
             if (rsp != null)
             {
                 if (rsp.LLRPStatus.StatusCode != ENUM_StatusCode.M_Success)
@@ -887,120 +852,100 @@ namespace SimpleLLRPSample
                     ++numAntennaToSet;
             }
 
-            MSG_SET_READER_CONFIG msg = new MSG_SET_READER_CONFIG
-            {
-                AccessReportSpec = new PARAM_AccessReportSpec
-                {
-                    AccessReportTrigger = ENUM_AccessReportTriggerType.End_Of_AccessSpec
-                }
-            };
+            MSG_SET_READER_CONFIG msg = new MSG_SET_READER_CONFIG();
+            msg.AccessReportSpec = new PARAM_AccessReportSpec();
+            msg.AccessReportSpec.AccessReportTrigger = ENUM_AccessReportTriggerType.End_Of_AccessSpec;
 
-            PARAM_C1G2InventoryCommand cmd = new PARAM_C1G2InventoryCommand
-            {
-                C1G2RFControl = new PARAM_C1G2RFControl
-                {
-                    ModeIndex = _readerPara.ModeIndex,
-                    Tari = 0
-                },
-                C1G2SingulationControl = new PARAM_C1G2SingulationControl
-                {
-                    Session = new TwoBits(0),
-                    TagPopulation = _readerPara.TagPopulation,
-                    TagTransitTime = _readerPara.TagTransitTime
-                },
-                TagInventoryStateAware = false
-            };
+            PARAM_C1G2InventoryCommand cmd = new PARAM_C1G2InventoryCommand();
+            cmd.C1G2RFControl = new PARAM_C1G2RFControl();
+
+            cmd.C1G2RFControl.ModeIndex = 1000;//_readerPara.ModeIndex;
+            cmd.C1G2RFControl.Tari = 10;
+            cmd.C1G2SingulationControl = new PARAM_C1G2SingulationControl();
+            cmd.C1G2SingulationControl.Session = new TwoBits(0);
+            cmd.C1G2SingulationControl.TagPopulation = _readerPara.TagPopulation;
+            cmd.C1G2SingulationControl.TagTransitTime = _readerPara.TagTransitTime;
+            cmd.TagInventoryStateAware = false;
 
             msg.AntennaConfiguration = new PARAM_AntennaConfiguration[numAntennaToSet];
             for (ushort i = 0; i < numAntennaToSet; ++i)
             {
-                msg.AntennaConfiguration[i] = new PARAM_AntennaConfiguration
-                {
-                    AirProtocolInventoryCommandSettings = new UNION_AirProtocolInventoryCommandSettings()
-                };
+                msg.AntennaConfiguration[i] = new PARAM_AntennaConfiguration();
+                msg.AntennaConfiguration[i].AirProtocolInventoryCommandSettings = new UNION_AirProtocolInventoryCommandSettings();
                 msg.AntennaConfiguration[i].AirProtocolInventoryCommandSettings.Add(cmd);
                 msg.AntennaConfiguration[i].AntennaID = (ushort)(i + 1);
-                msg.AntennaConfiguration[i].RFReceiver = new PARAM_RFReceiver
-                {
-                    ReceiverSensitivity = _readerPara.ReaderSensitivity
-                };
-                msg.AntennaConfiguration[i].RFTransmitter = new PARAM_RFTransmitter
-                {
-                    ChannelIndex = _readerPara.ChannelIndex,
-                    HopTableID = _readerPara.HopTableIndex,
-                    TransmitPower = (ushort)(1 + (_readerPara.TransmitPower-10)/0.25) // 10dbm: 1     32.5dbm: 91
-                };           
+                msg.AntennaConfiguration[i].RFReceiver = new PARAM_RFReceiver();
+                msg.AntennaConfiguration[i].RFReceiver.ReceiverSensitivity = _readerPara.ReaderSensitivity;
+                msg.AntennaConfiguration[i].RFTransmitter = new PARAM_RFTransmitter();
+                msg.AntennaConfiguration[i].RFTransmitter.ChannelIndex = _readerPara.ChannelIndex;
+                msg.AntennaConfiguration[i].RFTransmitter.HopTableID = _readerPara.HopTableIndex;
+                msg.AntennaConfiguration[i].RFTransmitter.TransmitPower = (ushort)(1 + (_readerPara.TransmitPower-10)/0.25);
             }
 
 
-            // NOT SUPPORT FOR AntennaProperties
+            /* 
+             * possible values:
+             * Dual_Target;     Dual_Target_with_BtoASelect;
+             * No_Target;       Reader_Selected;
+             * Single_Target;   Single_Target_BtoA;         Single_Target_With_Suppression
+             */
+            PARAM_ImpinjInventorySearchMode impinjSearchMod = new PARAM_ImpinjInventorySearchMode();
+            impinjSearchMod.InventorySearchMode = ENUM_ImpinjInventorySearchType.Single_Target;
+
+            
+            PARAM_ImpinjLowDutyCycle impinjDutyCycle = new PARAM_ImpinjLowDutyCycle();
+            impinjDutyCycle.LowDutyCycleMode = ENUM_ImpinjLowDutyCycleMode.Disabled;
+            impinjDutyCycle.EmptyFieldTimeout = 2000;
+            impinjDutyCycle.FieldPingInterval = 200;
+
+
+            //NOT SUPPORT FOR AntennaProperties
             //msg.AntennaProperties = new PARAM_AntennaProperties[1];
             //msg.AntennaProperties[0] = new PARAM_AntennaProperties();
             //msg.AntennaProperties[0].AntennaConnected = true;
             //msg.AntennaProperties[0].AntennaGain = 0;
-            //msg.AntennaProperties[0].AntennaId = 1;
+            //msg.AntennaProperties[0].AntennaID = 1;
 
-            msg.EventsAndReports = new PARAM_EventsAndReports {HoldEventsAndReportsUponReconnect = false};
+            msg.EventsAndReports = new PARAM_EventsAndReports();
+            msg.EventsAndReports.HoldEventsAndReportsUponReconnect = false;
 
-            msg.KeepaliveSpec = new PARAM_KeepaliveSpec
-            {
-                KeepaliveTriggerType = ENUM_KeepaliveTriggerType.Null,
-                PeriodicTriggerValue = _readerPara.PeriodicTriggerValue
-            };
+            msg.KeepaliveSpec = new PARAM_KeepaliveSpec();
+            msg.KeepaliveSpec.KeepaliveTriggerType = ENUM_KeepaliveTriggerType.Null;
+            msg.KeepaliveSpec.PeriodicTriggerValue = _readerPara.PeriodicTriggerValue;
 
-            msg.ReaderEventNotificationSpec = new PARAM_ReaderEventNotificationSpec
-            {
-                EventNotificationState = new PARAM_EventNotificationState[5]
-            };
+            msg.ReaderEventNotificationSpec = new PARAM_ReaderEventNotificationSpec();
+            msg.ReaderEventNotificationSpec.EventNotificationState = new PARAM_EventNotificationState[5];
 
-            msg.ReaderEventNotificationSpec.EventNotificationState[0] = new PARAM_EventNotificationState
-            {
-                EventType = ENUM_NotificationEventType.AISpec_Event,
-                NotificationState = false
-            };
+            msg.ReaderEventNotificationSpec.EventNotificationState[0] = new PARAM_EventNotificationState();
+            msg.ReaderEventNotificationSpec.EventNotificationState[0].EventType = ENUM_NotificationEventType.AISpec_Event;
+            msg.ReaderEventNotificationSpec.EventNotificationState[0].NotificationState = false;
 
-            msg.ReaderEventNotificationSpec.EventNotificationState[1] = new PARAM_EventNotificationState
-            {
-                EventType = ENUM_NotificationEventType.Antenna_Event,
-                NotificationState = true
-            };
+            msg.ReaderEventNotificationSpec.EventNotificationState[1] = new PARAM_EventNotificationState();
+            msg.ReaderEventNotificationSpec.EventNotificationState[1].EventType = ENUM_NotificationEventType.Antenna_Event;
+            msg.ReaderEventNotificationSpec.EventNotificationState[1].NotificationState = true;
 
-            msg.ReaderEventNotificationSpec.EventNotificationState[2] = new PARAM_EventNotificationState
-            {
-                EventType = ENUM_NotificationEventType.GPI_Event,
-                NotificationState = false
-            };
+            msg.ReaderEventNotificationSpec.EventNotificationState[2] = new PARAM_EventNotificationState();
+            msg.ReaderEventNotificationSpec.EventNotificationState[2].EventType = ENUM_NotificationEventType.GPI_Event;
+            msg.ReaderEventNotificationSpec.EventNotificationState[2].NotificationState = false;
 
-            msg.ReaderEventNotificationSpec.EventNotificationState[3] = new PARAM_EventNotificationState
-            {
-                EventType = ENUM_NotificationEventType.Reader_Exception_Event,
-                NotificationState = true
-            };
+            msg.ReaderEventNotificationSpec.EventNotificationState[3] = new PARAM_EventNotificationState();
+            msg.ReaderEventNotificationSpec.EventNotificationState[3].EventType = ENUM_NotificationEventType.Reader_Exception_Event;
+            msg.ReaderEventNotificationSpec.EventNotificationState[3].NotificationState = true;
 
-            msg.ReaderEventNotificationSpec.EventNotificationState[4] = new PARAM_EventNotificationState
-            {
-                EventType = ENUM_NotificationEventType.RFSurvey_Event,
-                NotificationState = true
-            };
+            msg.ReaderEventNotificationSpec.EventNotificationState[4] = new PARAM_EventNotificationState();
+            msg.ReaderEventNotificationSpec.EventNotificationState[4].EventType = ENUM_NotificationEventType.RFSurvey_Event;
+            msg.ReaderEventNotificationSpec.EventNotificationState[4].NotificationState = true;
 
 
-            msg.ROReportSpec = new PARAM_ROReportSpec
-            {
-                N = 1,
-                ROReportTrigger = ENUM_ROReportTriggerType.Upon_N_Tags_Or_End_Of_AISpec,
-                TagReportContentSelector = new PARAM_TagReportContentSelector
-                {
-                    AirProtocolEPCMemorySelector = new UNION_AirProtocolEPCMemorySelector()
-                }
-            };
-
-            PARAM_C1G2EPCMemorySelector c1g2mem = new PARAM_C1G2EPCMemorySelector
-            {
-                EnableCRC = false,
-                EnablePCBits = false
-            };
+            msg.ROReportSpec = new PARAM_ROReportSpec();
+            msg.ROReportSpec.N = 1;
+            msg.ROReportSpec.ROReportTrigger = ENUM_ROReportTriggerType.Upon_N_Tags_Or_End_Of_AISpec;
+            msg.ROReportSpec.TagReportContentSelector = new PARAM_TagReportContentSelector();
+            msg.ROReportSpec.TagReportContentSelector.AirProtocolEPCMemorySelector = new UNION_AirProtocolEPCMemorySelector();
+            PARAM_C1G2EPCMemorySelector c1g2mem = new PARAM_C1G2EPCMemorySelector();
+            c1g2mem.EnableCRC = false; // CRC
+            c1g2mem.EnablePCBits = false; // PC
             msg.ROReportSpec.TagReportContentSelector.AirProtocolEPCMemorySelector.Add(c1g2mem);
-
             msg.ROReportSpec.TagReportContentSelector.EnableAccessSpecID = false;
             msg.ROReportSpec.TagReportContentSelector.EnableAntennaID = true;
             msg.ROReportSpec.TagReportContentSelector.EnableChannelIndex = true;
@@ -1016,7 +961,7 @@ namespace SimpleLLRPSample
 
 
             MSG_ERROR_MESSAGE msg_err;
-            MSG_SET_READER_CONFIG_RESPONSE rsp = Reader.SET_READER_CONFIG(msg, out msg_err, 12000);
+            MSG_SET_READER_CONFIG_RESPONSE rsp = Reader.SET_READER_CONFIG(msg, out msg_err, 2000);
             if (rsp != null)
             {
                 if (rsp.LLRPStatus.StatusCode != ENUM_StatusCode.M_Success)
@@ -1055,7 +1000,7 @@ namespace SimpleLLRPSample
             msg_cfg.MSG_ID = 2; //this doesn't need to bet set as the library will default
 
             //if SET_READER_CONFIG affects antennas it could take several seconds to return
-            MSG_SET_READER_CONFIG_RESPONSE rsp_cfg = Reader.SET_READER_CONFIG(msg_cfg, out msg_err, 12000);
+            MSG_SET_READER_CONFIG_RESPONSE rsp_cfg = Reader.SET_READER_CONFIG(msg_cfg, out msg_err, 2000);
 
             if (rsp_cfg != null) // success
             {
@@ -1094,7 +1039,7 @@ namespace SimpleLLRPSample
 
             //Send the custom message and wait for 8 seconds
             MSG_ERROR_MESSAGE msg_err;
-            MSG_GET_READER_CAPABILITIES_RESPONSE msg_rsp = Reader.GET_READER_CAPABILITIES(cap, out msg_err, 8000);
+            MSG_GET_READER_CAPABILITIES_RESPONSE msg_rsp = Reader.GET_READER_CAPABILITIES(cap, out msg_err, 2000);
 
             if (msg_rsp != null)
             {
@@ -1127,7 +1072,6 @@ namespace SimpleLLRPSample
             if ((dev_cap != null) &&
                 (dev_cap.DeviceManufacturerName == 25882))
             {
-                _modelNumber = dev_cap.ModelName;
             }
             else
             {
@@ -1146,7 +1090,7 @@ namespace SimpleLLRPSample
             msg.AntennaID = 1;
             msg.GPIPortNum = 0;
             MSG_ERROR_MESSAGE msg_err;
-            MSG_GET_READER_CONFIG_RESPONSE rsp = Reader.GET_READER_CONFIG(msg, out msg_err, 3000);
+            MSG_GET_READER_CONFIG_RESPONSE rsp = Reader.GET_READER_CONFIG(msg, out msg_err, 2000);
             if (rsp != null)
             {
                 if (rsp.LLRPStatus.StatusCode != ENUM_StatusCode.M_Success)
@@ -1180,7 +1124,7 @@ namespace SimpleLLRPSample
             ENUM_ConnectionAttemptStatusType status;
 
             //Open the Reader connection.  Timeout after 5 seconds
-            bool ret = Reader.Open(ip, 5000, out status);
+            bool ret = Reader.Open(ip, 2000, out status);
 
             //Ensure that the open succeeded and that the Reader
             // returned the correct connection status result
@@ -1210,32 +1154,6 @@ namespace SimpleLLRPSample
             Reader.OnRoAccessReportReceived -= new delegateRoAccessReport(reader_OnRoAccessReportReceived);
         }
 
-
-        public static void setReader_PARM()
-        {
-            if (_readerPara == null) return;
-            /*
-             * Set Channel Index, 16 in total, which represents different frequency (MHz). Namely,
-             * [1: 920.38]
-             * [2: 920.88]
-             * ...... 
-             * [16: 924.38]
-            */
-            _readerPara.ChannelIndex = 16;
-            _readerPara.TransmitPower = 32.5; // range from 10 dbm to 32.5 dbm
-            _readerPara.ModeIndex = 1000;
-            _readerPara.HopTableIndex = 0;
-            _readerPara.PeriodicTriggerValue = 0;
-            _readerPara.TagPopulation = 32;
-            _readerPara.TagTransitTime = 0;
-            _readerPara.ReaderSensitivity = 1;
-            // each value in the array map to Antenna 1, Antenna 2, Antenna 3, Antenna 4, respectively.
-            _readerPara.AntennaId = new bool[] { true, true, false, false };
-        }
-
-        #endregion
-
-
         public static void InitializeConfiguration()
         {
             Console.WriteLine("Initializing...\n");
@@ -1251,28 +1169,58 @@ namespace SimpleLLRPSample
             Impinj_Installer.Install();
         }
 
-
+        public static void setReader_PARM()
+        {
+            if (_readerPara == null) return;
+            /*
+             * Set Channel Index, 16 in total, which represents different frequency (MHz). Namely,
+             * [1: 920.38]
+             * [2: 920.88]
+             * ...... 
+             * [16: 924.38]
+            */
+            _readerPara.ChannelIndex = 16;
+            _readerPara.TransmitPower = 32.5; // range from 10 dbm to 32.5 dbm , 0.25, 90 values in total
+           /*
+            * ModeIndex  NAME                  SENSITIVITY     INTERFERENCE TOLERANCE
+            *   0        Max Throughput        good            poor
+            *   1        Hybrid                good            good
+            *   2        Dense Reader (M=4)    better          excellent
+            *   3        Dense Reader (M=8)    best            excellent
+            *   4*       MaxMiller             better          good
+            *   * MaxMiller is not available in all regions
+            */
+            _readerPara.ModeIndex = 1000;
+            _readerPara.HopTableIndex = 0;
+            _readerPara.PeriodicTriggerValue = 0;
+            _readerPara.TagPopulation = 2;
+            _readerPara.TagTransitTime = 0;
+            _readerPara.ReaderSensitivity = 1;
+            // each value in the array map to Antenna 1, Antenna 2, Antenna 3, Antenna 4, respectively.
+            _readerPara.AntennaId = new bool[] { true, false, false, false };
+        }
+        #endregion
 
         public static void Main()
         {
-            const string IPAddress = "192.168.1.222";
-            const string fpath = @"C:\Users\MY\Desktop\20160116\";
+            const string ipAddress = "169.254.1.1";
+            const string fpath = @"C:\Users\Marin\OneDrive\Documents\DATA\20160127\test\";
             if (!Directory.Exists(fpath))
                 Directory.CreateDirectory(fpath);
 
             DateTime dt = DateTime.Now;
-            string strCurrentTime = dt.ToString("yyyyMMddHHmmss");
-            string fname = "test "+ strCurrentTime + ".csv";
+            string strCurrentTime = dt.ToString("MMddHHmmss");
+            string fname = "r420_curr_LLRP10.22_"+strCurrentTime + ".csv";
 
             // set Data collection time (s)
-            const ushort sustainTime = 200;
+            const ushort sustainTime = 20;
 
-            Console.WriteLine("Impinj C# LTK.NET RFID Application DocSample4 Reader ----- " + IPAddress + "\n");
+            Console.WriteLine("Impinj C# LTK.NET RFID Application DocSample4 Reader ----- " + ipAddress + "\n");
 
             InitializeConfiguration();
             InitializeDataRow();
             setReader_PARM();
-            ConnectTo(IPAddress);
+            ConnectTo(ipAddress);
 
             //subscribe to client event notification and ro access report
             reader_AddSubscription();
@@ -1292,21 +1240,21 @@ namespace SimpleLLRPSample
             Stop_RoSpec();
             ResetReaderToFactoryDefault();
 
-            Console.WriteLine("  Calculated {0} Velocity Estimates.", _directionCount);
-            Console.WriteLine("  Received {0} Tag Reports.", _reportCount);
-            Console.WriteLine("  Received {0} Events.", _eventCount);
+            Console.WriteLine(@"  Calculated {0} Velocity Estimates.", _directionCount);
+            Console.WriteLine(@"  Received {0} Tag Reports.", _reportCount);
+            Console.WriteLine(@"  Received {0} Events.", _eventCount);
 
             // clean up the Reader
             reader_CleanSubscription();
 
             // save Data into csv file.
-            Console.WriteLine("Saving Data...");
+            Console.WriteLine(@"Saving Data...");
             Console.WriteLine(fpath + fname);
             CsvStreamWriter csvWriter = new CsvStreamWriter(fpath + fname);
             SaveData(csvWriter);
 
-            Console.WriteLine("DONE!\n");
-            Console.WriteLine("Press any key to exit!");
+            Console.WriteLine(@"DONE!");
+            Console.WriteLine(@"Press any key to exit!");
             Console.ReadKey(true);
             //Thread.Sleep(5000);
         }

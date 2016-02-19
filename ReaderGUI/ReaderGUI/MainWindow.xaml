@@ -8,40 +8,50 @@
         mc:Ignorable="d"
         Title="MainWindow" Height="350" Width="525">
     <Grid>
-        <Menu x:Name="Menu" Height="20" VerticalAlignment="Top" Margin="0,0,280,0">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="446*"/>
+            <ColumnDefinition Width="71*"/>
+        </Grid.ColumnDefinitions>
+        <Menu x:Name="Menu" Height="20" VerticalAlignment="Top" Grid.ColumnSpan="2">
             <MenuItem Header="File">
                 <MenuItem Header="Copy"/>
-                <MenuItem Header="Save"/>
+                <MenuItem Header="Save" Click="ButtonSaveClicked"/>
             </MenuItem>
             <MenuItem Header="Debug">
-                <MenuItem Header="Connect to Reader"/>
-                <MenuItem Header="Start"/>
-                <MenuItem Header="Stop"/>
+                <MenuItem Header="Connect to Reader" Click="ButtonConnect2ReaderClicked"/>
+                <MenuItem Header="Start" Click="ButtonStartReadingClicked"/>
+                <MenuItem Header="Stop"  Click="ButtonStopReadingClicked"/>
             </MenuItem>
             <MenuItem Header="Settings">
-                <MenuItem Header="Settings"/>
+                <MenuItem Header="Settings" Click="ButtonSettingsClicked"/>
                 <MenuItem Header="Help"/>
                 <MenuItem Header="About"/>
             </MenuItem>
 
         </Menu>
-        <ToolBar x:Name="ToolBar" RenderTransformOrigin="6.875,0.692" Margin="242,2,187,299">
-            <Button Command="Save" ToolTip="Save File">
-                <Image Source="/src/ic_save_black_48dp.png" />
+        <ToolBar x:Name="ToolBar" RenderTransformOrigin="6.875,0.692" Margin="0,20,0,281" HorizontalAlignment="Left" Width="167">
+            <Button Command="Save" ToolTip="Save File" Click="ButtonSaveClicked">
+                <Image Source="/src/ic_save_black_48dp.png" Width="8" Height="7" OpacityMask="Blue"/>
             </Button>
-            <Button  ToolTip="Start Reading">
-                <Image Source="/src/ic_play_arrow_black_48dp.png"/>
+            <Button ToolTip="Connect to Reader" Click="ButtonConnect2ReaderClicked">
+                <Image Source="/src/ic_link.png" Width="7" Height="7"></Image>
             </Button>
-            <Button Command="Stop" ToolTip="Stop configuration">
-                <Image Source="/src/ic_stop_black_48dp.png" />
+            <Button  ToolTip="Start Reading" Click="ButtonStartReadingClicked">
+                <Image Source="/src/ic_play_arrow_black_48dp.png" Width="7" Height="7"/>
             </Button>
-            <Button >
-                <Image Source="/src/ic_settings_black_48dp.png" />
+            <Button Command="Stop" ToolTip="Stop Reading" Click="ButtonStopReadingClicked">
+                <Image Source="/src/ic_stop_black_48dp.png" Height="7" Width="8" />
+            </Button>
+            <Button ToolTip="Clear DataGrid" Click="ButtonClearDataGridClicked">
+                <Image Source="/src/ic_clear.png" Height="6" Width="8"/>
+            </Button>
+            <Button ToolTip="Settings" Click="ButtonSettingsClicked"  HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Height="Auto" Width="13.75" Margin="0,0,0,0">
+                <Image Source="/src/ic_settings_black_48dp.png" Height="7" Width="8" />
             </Button>
         </ToolBar>
-        <DataGrid x:Name="DataGrid" HorizontalAlignment="Left" VerticalAlignment="Top" RenderTransformOrigin="1.167,1.615" Height="135" Width="497" Margin="10,25,0,0"
+        <DataGrid x:Name="DataGrid" HorizontalAlignment="Left" VerticalAlignment="Top" RenderTransformOrigin="1.167,1.615" Height="122" Width="497" Margin="10,43,0,0"
                   RowHeaderWidth="30" AutoGenerateColumns="False" IsReadOnly="True"
-                  SelectionUnit="FullRow">
+                  SelectionUnit="FullRow" Grid.ColumnSpan="2">
 
             <DataGrid.RowStyle>
                 <Style TargetType="DataGridRow">
@@ -67,6 +77,7 @@
             <DataGrid.Columns>
                 <DataGridCheckBoxColumn Binding="{x:Null}" ClipboardContentBinding="{x:Null}" Header="EPC" HeaderStringFormat="Epc"/>
                 <DataGridCheckBoxColumn Binding="{x:Null}" ClipboardContentBinding="{x:Null}" Header="TimeStamp" HeaderStringFormat="Timestamp"/>
+                <DataGridCheckBoxColumn Binding="{x:Null}" ClipboardContentBinding="{x:Null}" Header="Antenna" HeaderStringFormat="Antenna"/>
                 <DataGridCheckBoxColumn Binding="{x:Null}" ClipboardContentBinding="{x:Null}" Header="TxPower" HeaderStringFormat="TxPower"/>
                 <DataGridCheckBoxColumn Binding="{x:Null}" ClipboardContentBinding="{x:Null}" Header="Frequency" HeaderStringFormat="Frequency"/>
                 <DataGridCheckBoxColumn Binding="{x:Null}" ClipboardContentBinding="{x:Null}" Header="RSSI" HeaderStringFormat="RSSI"/>
@@ -78,10 +89,12 @@
         </DataGrid>
 
 
-        <TextBox x:Name="TextBox" HorizontalAlignment="Left" Height="19" Margin="10,165,0,0" TextWrapping="Wrap" Text="Epc: " VerticalAlignment="Top" Width="33"/>
-        <ListBox x:Name="ListBox" HorizontalAlignment="Left" Height="19" VerticalAlignment="Top" Width="106" Margin="48,165,0,0"/>
+        <TextBox x:Name="TextBoxEpc" HorizontalAlignment="Left" Height="20" Margin="10,165,0,0" TextWrapping="Wrap" Text="EPC: " VerticalAlignment="Top" Width="40" />
+        <ListBox x:Name="ListBoxEpcList" HorizontalAlignment="Left" Height="20" MaxWidth="100" VerticalAlignment="Top" Width="106" Margin="48,165,0,0" SelectionChanged="ListBoxEpcList_SelectionChanged"/>
 
-        <d3:ChartPlotter x:Name="Rssi" Margin="10,180,360,5" Width="140" Height="100">
+        <TextBox x:Name="TextBoxAntenna" HorizontalAlignment="Left" Height="20" Margin="167,165,0,0" TextWrapping="Wrap" Text="Antenna:" VerticalAlignment="Top" Width="60"/>
+        <ListBox x:Name="ListBoxAntennaList" HorizontalAlignment="Left" Height="20" Width="30" Margin="227,165,0,0" VerticalAlignment="Top" />
+        <d3:ChartPlotter x:Name="Rssi" Margin="14,197,292,22" Width="140" Height="100">
             <d3:ChartPlotter.VerticalAxis>
                 <d3:VerticalIntegerAxis />
             </d3:ChartPlotter.VerticalAxis>
@@ -93,7 +106,7 @@
             <d3:HorizontalAxisTitle Content="Timestamp" FontSize="10"/>
         </d3:ChartPlotter>
 
-        <d3:ChartPlotter x:Name="Phase" Margin="188,197,189,22" Width="140" Height="100">
+        <d3:ChartPlotter x:Name="Phase" Margin="188,197,118,22" Width="140" Height="100">
             <d3:ChartPlotter.VerticalAxis>
                 <d3:VerticalIntegerAxis />
             </d3:ChartPlotter.VerticalAxis>
@@ -105,7 +118,7 @@
             <d3:HorizontalAxisTitle Content="Timestamp" FontSize="10"/>
         </d3:ChartPlotter>
 
-        <d3:ChartPlotter x:Name="DopplerShift" Margin="350,180,10,5" Width="140" Height="100">
+        <d3:ChartPlotter x:Name="DopplerShift" Margin="358,197,19,22" Width="140" Height="100" Grid.ColumnSpan="2">
             <d3:ChartPlotter.VerticalAxis>
                 <d3:VerticalIntegerAxis />
             </d3:ChartPlotter.VerticalAxis>
@@ -117,6 +130,7 @@
             <d3:HorizontalAxisTitle Content="Timestamp" FontSize="10"/>
         </d3:ChartPlotter>
 
-        <StatusBar Height="13" VerticalAlignment="Top" Margin="0,306,0,0"/>
+        <StatusBar Height="13" VerticalAlignment="Top" Margin="0,306,0,0" Grid.ColumnSpan="2"/>
+
     </Grid>
 </Window>
