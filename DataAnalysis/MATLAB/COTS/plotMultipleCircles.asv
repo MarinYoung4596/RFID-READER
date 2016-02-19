@@ -1,0 +1,16 @@
+%% plot multiple circles
+
+phase_difference = [-0.471575609 -0.471732768 -0.472078333 -0.472611891 -0.473332806 -0.474240224 -0.475333077];
+
+range = ([-200, 200, 0, 400]);
+delta_f = 3.75; % MHz
+dist = 6; % cm
+y = 300;
+figure;
+for i = 1 : 1 : length(phase_difference)
+	x = -2 - (i-1)*dist;
+	eqn = getCircleEquation(delta_f, phase_difference(i), x, y);
+	handler = ezplot(eqn, range); hold on;
+    plot(x, y, 'o'); hold on;   % center of circle
+end
+plot(0, 0, 'x'); hold on;   % ground truth
