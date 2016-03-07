@@ -14,7 +14,6 @@ classdef Point
             p.x = dot.x;
             p.y = dot.y;
         end
-            
     end
 end
 

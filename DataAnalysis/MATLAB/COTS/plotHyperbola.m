@@ -1,3 +1,4 @@
+%% plot hyperbola.
 function handler = plotHyperbola(tag1, tag2)
     antennaNo = 1;
     if (tag1.Frequency == tag2.Frequency && tag1.Power == tag2.Power)
@@ -11,7 +12,7 @@ function handler = plotHyperbola(tag1, tag2)
     y0 = (tag1.Antenna(antennaNo).Location.y + tag2.Antenna(antennaNo).Location.y)/2;
     distance = calculateDistance(tag1.Antenna(antennaNo).Location, tag2.Antenna(antennaNo).Location);
     
-	eqn = getHyperbolaEquation(phase1, phase2, freq, x0, y0, distance);
+	eqn = getHyperbolaEquation(phase1, phase2, freq, tag1.Location, tag2.Location);
 	range = ([-200, 200, 0, 400]);
 	plot(tag1.Location.x, tag1.Location.y, 'x');
 	plot(tag1.Antenna(antennaNo).Location.x, tag1.Antenna(antennaNo).Location.y, 'o');

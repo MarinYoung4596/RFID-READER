@@ -1,6 +1,6 @@
-%% remove outliers in list
+%% remove outliers in data list
 function data_list = removeOutliers(data_list)
-	% whether there's phase hop
+	% determine whether there's phase hop
 	if abs(max(data_list) - min(data_list)) < 1
 		mean_val = mean(data_list);
 		sigma = std(data_list);
