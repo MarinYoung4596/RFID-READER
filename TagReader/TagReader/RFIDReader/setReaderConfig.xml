@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<SET_READER_CONFIG
+   xmlns="http://www.llrp.org/ltk/schema/core/encoding/xml/1.0"
+   xmlns:llrp="http://www.llrp.org/ltk/schema/core/encoding/xml/1.0"
+   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+   xmlns:Impinj="http://developer.impinj.com/ltk/schema/encoding/xml/1.18"
+  xsi:schemaLocation="http://www.llrp.org/ltk/schema/core/encoding/xml/1.0 http://www.llrp.org/ltk/schema/core/encoding/xml/1.0/llrp.xsd http://developer.impinj.com/ltk/schema/encoding/xml/1.18 http://developer.impinj.com/ltk/schema/encoding/xml/1.18/impinj.xsd"
+ MessageID="0">
+  <ResetToFactoryDefault>true</ResetToFactoryDefault>
+  <AntennaConfiguration>
+    <AntennaId>0</AntennaId>
+    <C1G2InventoryCommand>
+      <TagInventoryStateAware>false</TagInventoryStateAware>
+      <C1G2RFControl>
+        <!--Set mode to Gen2 DRM AutoSet Mode Tari is ignored -->
+        <ModeIndex>1000</ModeIndex>
+        <Tari>0</Tari>
+      </C1G2RFControl>
+      <C1G2SingulationControl>
+        <!--Need Dual-target for Tag Direction, so use session 2 -->
+        <Session>2</Session>
+        <TagPopulation>32</TagPopulation>
+        <TagTransitTime>0</TagTransitTime>
+      </C1G2SingulationControl>
+      <Impinj:ImpinjInventorySearchMode xmlns="http://developer.impinj.com/ltk/schema/encoding/xml/1.18">
+        <!--Need Dual-target for lots of low level data -->
+        <InventorySearchMode>Dual_Target</InventorySearchMode>
+      </Impinj:ImpinjInventorySearchMode>
+      <Impinj:ImpinjLowDutyCycle xmlns="http://developer.impinj.com/ltk/schema/encoding/xml/1.18">
+        <LowDutyCycleMode>Disabled</LowDutyCycleMode>
+        <EmptyFieldTimeout>10000</EmptyFieldTimeout>
+        <FieldPingInterval>200</FieldPingInterval>
+      </Impinj:ImpinjLowDutyCycle>
+    
+    </C1G2InventoryCommand>
+  </AntennaConfiguration>
+  <ROReportSpec>
+    <ROReportTrigger>Upon_N_Tags_Or_End_Of_ROSpec</ROReportTrigger>
+    <N>1</N>
+    <!--Have to report every tag when tag direction is enabled -->
+    <TagReportContentSelector>
+      <!-- Enable certain things that we'll use with low level data
+	          especially antenna, channel, timestamp -->
+      <EnableROSpecID>false</EnableROSpecID>
+      <EnableSpecIndex>false</EnableSpecIndex>
+      <EnableInventoryParameterSpecID>false</EnableInventoryParameterSpecID>
+      <EnableAntennaId>true</EnableAntennaId>
+      <EnableChannelIndex>true</EnableChannelIndex>
+      <EnablePeakRSSI>true</EnablePeakRSSI>
+      <EnableFirstSeenTimestamp>true</EnableFirstSeenTimestamp>
+      <EnableLastSeenTimestamp>true</EnableLastSeenTimestamp>
+      <EnableTagSeenCount>false</EnableTagSeenCount>
+      <EnableAccessSpecID>false</EnableAccessSpecID>
+      <C1G2EPCMemorySelector>
+        <EnableCRC>false</EnableCRC>
+        <EnablePCBits>false</EnablePCBits>
+      </C1G2EPCMemorySelector>
+    </TagReportContentSelector>
+    <Impinj:ImpinjTagReportContentSelector xmlns="http://developer.impinj.com/ltk/schema/encoding/xml/1.18">
+      <ImpinjEnableSerializedTID>
+        <SerializedTIDMode>Enabled</SerializedTIDMode>
+      </ImpinjEnableSerializedTID>
+      <ImpinjEnableRFPhaseAngle>
+        <RFPhaseAngleMode>Enabled</RFPhaseAngleMode>
+      </ImpinjEnableRFPhaseAngle>
+      <ImpinjEnablePeakRSSI>
+        <PeakRSSIMode>Enabled</PeakRSSIMode>
+      </ImpinjEnablePeakRSSI>
+    </Impinj:ImpinjTagReportContentSelector>
+  </ROReportSpec>
+</SET_READER_CONFIG>
