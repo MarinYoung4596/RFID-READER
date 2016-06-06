@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace TagReader
+namespace TagReader.RFIDReader
 {
     public class TagInfos
     {

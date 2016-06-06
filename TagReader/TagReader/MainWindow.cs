@@ -9,13 +9,13 @@ namespace TagReader
 {
     public partial class FormTagReader : Form
     {
-        private bool _isConnected2Reader;
-        private bool _isStartButtonClicked;
-        private bool _isStopButtonClicked;
-        private bool _isClearButtonClicked;
-        private bool _isSettingsButtonClicked;
-        private bool _showQuickAccessToolStrip = true;
-        private bool _showReaderSettingsToolStrip = true;
+        private static bool _isConnected2Reader;
+        private static bool _isStartButtonClicked;
+        private static bool _isStopButtonClicked;
+        private static bool _isClearButtonClicked;
+        public  static bool IsSettingsButtonClicked;
+        private static bool _showQuickAccessToolStrip = true;
+        private static bool _showReaderSettingsToolStrip = true;
 
 
         public FormTagReader()
@@ -197,30 +197,44 @@ namespace TagReader
 
 
         #region Button Clicked Event Response
+
         private void button_Connect_Click(object sender, EventArgs e)
         {
-            var ipAddress = toolStripTextBox_Address.Text;//speedwayr-11-3B-8B.local
-            var txPower = Convert.ToDouble(toolStripTextBox_Power.Text);
-            var comboBoxFrequency = toolStripComboBox_Frequency.SelectedItem.ToString();
-
-            if (ipAddress == string.Empty)
+            ReaderWrapper.Initialize_Configuration();
+            ReaderWrapper.setReader_PARM(); // default
+            if (IsSettingsButtonClicked)
             {
-                MessageBox.Show("请输入IP地址！");
+                toolStripTextBox_Address.Text = ReaderWrapper.ReaderParameters.Ip;
+                toolStripTextBox_Power.Text =
+                    ReaderWrapper.ReaderParameters.TransmitPower.ToString(CultureInfo.InvariantCulture);
+                toolStripComboBox_Frequency.Text =
+                    Convert.ToString(920.625 + ReaderWrapper.ReaderParameters.ChannelIndex*0.25,
+                        CultureInfo.InvariantCulture);
             }
-            if (txPower < 10 || txPower > 32.5)
+            else
             {
-                MessageBox.Show("Invalid Power!");
+                var ipAddress = toolStripTextBox_Address.Text;
+                var txPower = Convert.ToDouble(toolStripTextBox_Power.Text);
+                var frequency = toolStripComboBox_Frequency.SelectedItem.ToString();
+
+                if (ipAddress == string.Empty)
+                {
+                    MessageBox.Show("IP Address Cannot be Empty");
+                }
+                if (txPower < 10 || txPower > 32.5)
+                {
+                    MessageBox.Show("Invalid Power!");
+                }
+
+                ReaderWrapper.ReaderParameters.Ip = ipAddress;
+                ReaderWrapper.ReaderParameters.TransmitPower = txPower;
+                ReaderWrapper.ReaderParameters.ChannelIndex =
+                    Convert.ToUInt16((Convert.ToDouble(frequency) - 920.625)/0.25);
             }
 
-            ReaderWrapper.InitializeConfiguration();
-            ReaderWrapper.InitializeDataRow();
-            ReaderWrapper.setReader_PARM();
-            ReaderWrapper.ReaderPara.ModeIndex = 1000;
-            ReaderWrapper.ReaderPara.TransmitPower = txPower;
-            ReaderWrapper.ReaderPara.ChannelIndex = Convert.ToUInt16((Convert.ToDouble(comboBoxFrequency) - 920.625) / 0.25);
-            _isConnected2Reader = ReaderWrapper.ConnectTo(ipAddress);
+            _isConnected2Reader = ReaderWrapper.ConnectToReader();
 
-            MessageBox.Show(_isConnected2Reader ? "连接Reader成功" : "连接Reader未成功");
+            MessageBox.Show(_isConnected2Reader ? "Successfully Connected!" : "Connect Failed!");
 
             if (_isConnected2Reader)
             {
@@ -235,20 +249,23 @@ namespace TagReader
 
         private void button_Start_Click(object sender, EventArgs e)
         {
-            if (_isConnected2Reader && !_isStartButtonClicked)
+            if (_isConnected2Reader)
             {
-                ReaderWrapper.reader_AddSubscription();
-                ReaderWrapper.ResetReaderToFactoryDefault();
-                ReaderWrapper.GetReaderCapabilities();
+
+                if (!_isStartButtonClicked)
+                {
+                    ReaderWrapper.ResetReaderToFactoryDefault();
+                    ReaderWrapper.GetReaderCapabilities();
+                }
                 ReaderWrapper.Enable_Impinj_Extensions();
-
                 ReaderWrapper.SetReaderConfig(); //SetReaderConfig_WithXML();
+                ReaderWrapper.reader_AddSubscription();
                 ReaderWrapper.Add_RoSpec(); //Add_RoSpec_WithXML();
-
                 ReaderWrapper.Enable_RoSpec();
-
+                
                 _startTime = 0;
                 _isStartButtonClicked = true;
+                _isStopButtonClicked = false;
 
                 toolStripButton_Start.Enabled = false;
                 ToolStripMenuItem_Start.Enabled = false;
@@ -267,22 +284,27 @@ namespace TagReader
         {
             if (_isConnected2Reader && _isStartButtonClicked)
             {
-                ReaderWrapper.Stop_RoSpec();
-                ReaderWrapper.ResetReaderToFactoryDefault();
+                ReaderWrapper.Stop();
 
-                // clean up the Reader
-                ReaderWrapper.reader_CleanSubscription();
                 chart_Rssi.EndInit();
                 chart_Phase.EndInit();
                 chart_Doppler.EndInit();
 
+                //_isStartButtonClicked = false;
                 _isStopButtonClicked = true;
+                IsSettingsButtonClicked = false;
 
                 toolStripButton_Stop.Enabled = false;
                 ToolStripMenuItem_Stop.Enabled = false;
 
+                // 
+                //toolStripButton_Start.Enabled = true;
+                //ToolStripMenuItem_Start.Enabled = true;
+
                 toolStripButton_Save.Enabled = true;
                 ToolStripMenuItem_Save.Enabled = true;
+                toolStripButton_Settings.Enabled = true;
+                ToolStripMenuItem_Settings.Enabled = true;
 
                 toolStripButton_Clear.Enabled = true;
             }
@@ -325,22 +347,14 @@ namespace TagReader
 
         }
 
-        private void toolStripButton_Settings_Click(object sender, EventArgs e)
+        private void button_Settings_Click(object sender, EventArgs e)
         {
-            if (!_isSettingsButtonClicked)
+            if (!IsSettingsButtonClicked)
             {
                 var x = new SettingsWindow();
                 x.Show();
-            }
-            
-        }
 
-        private void ToolStripMenuItem_Settings_Click(object sender, EventArgs e)
-        {
-            if (!_isSettingsButtonClicked)
-            {
-                var x = new SettingsWindow();
-                x.Show();
+                IsSettingsButtonClicked = true;
             }
         }
 
@@ -349,9 +363,7 @@ namespace TagReader
             var x = new AboutBox();
             x.Show();
         }
-        #endregion
-
-
+        
         private void quickAccessToolStripMenuItem_Click(object sender, EventArgs e)
         {
             if (_showQuickAccessToolStrip)
@@ -417,7 +429,7 @@ namespace TagReader
             }
         }
 
-
+        #endregion
 
     } // end FormTagReader
 } // end namespace

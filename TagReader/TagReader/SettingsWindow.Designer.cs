@@ -42,13 +42,18 @@
             this.radioButton_MAC = new System.Windows.Forms.RadioButton();
             this.radioButton_IP = new System.Windows.Forms.RadioButton();
             this.groupBox2 = new System.Windows.Forms.GroupBox();
+            this.checkBox_AutoSave = new System.Windows.Forms.CheckBox();
+            this.textBox_Timer = new System.Windows.Forms.TextBox();
+            this.label_Timer = new System.Windows.Forms.Label();
+            this.checkBox_TimerMode = new System.Windows.Forms.CheckBox();
+            this.comboBox_ReaderType = new System.Windows.Forms.ComboBox();
+            this.label_ReaderType = new System.Windows.Forms.Label();
             this.textBox_Tari = new System.Windows.Forms.TextBox();
             this.label_Tari = new System.Windows.Forms.Label();
             this.textBox_Population = new System.Windows.Forms.TextBox();
             this.label_Population = new System.Windows.Forms.Label();
             this.comboBox_SearchMode = new System.Windows.Forms.ComboBox();
             this.label_SearchMode = new System.Windows.Forms.Label();
-            this.comboBox_ReaderMode = new System.Windows.Forms.ComboBox();
             this.label_ReaderMode = new System.Windows.Forms.Label();
             this.comboBox_Antennas = new System.Windows.Forms.ComboBox();
             this.label_Antenna = new System.Windows.Forms.Label();
@@ -56,7 +61,9 @@
             this.label_Frequency = new System.Windows.Forms.Label();
             this.textBox_Power = new System.Windows.Forms.TextBox();
             this.label_TxPower = new System.Windows.Forms.Label();
+            this.comboBox_ReaderMode = new System.Windows.Forms.ComboBox();
             this.bindingSource1 = new System.Windows.Forms.BindingSource(this.components);
+            this.button_SaveSettings = new System.Windows.Forms.Button();
             this.groupBox1.SuspendLayout();
             this.groupBox2.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.bindingSource1)).BeginInit();
@@ -77,7 +84,7 @@
             this.groupBox1.Font = new System.Drawing.Font("Calibri", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.groupBox1.Location = new System.Drawing.Point(12, 7);
             this.groupBox1.Name = "groupBox1";
-            this.groupBox1.Size = new System.Drawing.Size(455, 72);
+            this.groupBox1.Size = new System.Drawing.Size(446, 72);
             this.groupBox1.TabIndex = 0;
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "Address";
@@ -133,7 +140,7 @@
             // label1
             // 
             this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(83, 46);
+            this.label1.Location = new System.Drawing.Point(83, 47);
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(72, 15);
             this.label1.TabIndex = 3;
@@ -144,7 +151,8 @@
             this.textBox_IP.Location = new System.Drawing.Point(87, 17);
             this.textBox_IP.Name = "textBox_IP";
             this.textBox_IP.Size = new System.Drawing.Size(205, 23);
-            this.textBox_IP.TabIndex = 2;
+            this.textBox_IP.TabIndex = 1;
+            this.textBox_IP.Text = "192.168.1.222";
             // 
             // radioButton_MAC
             // 
@@ -152,10 +160,11 @@
             this.radioButton_MAC.Location = new System.Drawing.Point(7, 44);
             this.radioButton_MAC.Name = "radioButton_MAC";
             this.radioButton_MAC.Size = new System.Drawing.Size(50, 19);
-            this.radioButton_MAC.TabIndex = 1;
+            this.radioButton_MAC.TabIndex = 2;
             this.radioButton_MAC.TabStop = true;
             this.radioButton_MAC.Text = "MAC";
             this.radioButton_MAC.UseVisualStyleBackColor = true;
+            this.radioButton_MAC.CheckedChanged += new System.EventHandler(this.radioButton_MAC_CheckedChanged);
             // 
             // radioButton_IP
             // 
@@ -167,9 +176,16 @@
             this.radioButton_IP.TabStop = true;
             this.radioButton_IP.Text = "IP";
             this.radioButton_IP.UseVisualStyleBackColor = true;
+            this.radioButton_IP.CheckedChanged += new System.EventHandler(this.radioButton_IP_CheckedChanged);
             // 
             // groupBox2
             // 
+            this.groupBox2.Controls.Add(this.checkBox_AutoSave);
+            this.groupBox2.Controls.Add(this.textBox_Timer);
+            this.groupBox2.Controls.Add(this.label_Timer);
+            this.groupBox2.Controls.Add(this.checkBox_TimerMode);
+            this.groupBox2.Controls.Add(this.comboBox_ReaderType);
+            this.groupBox2.Controls.Add(this.label_ReaderType);
             this.groupBox2.Controls.Add(this.textBox_Tari);
             this.groupBox2.Controls.Add(this.label_Tari);
             this.groupBox2.Controls.Add(this.textBox_Population);
@@ -187,17 +203,80 @@
             this.groupBox2.Font = new System.Drawing.Font("Calibri", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.groupBox2.Location = new System.Drawing.Point(12, 85);
             this.groupBox2.Name = "groupBox2";
-            this.groupBox2.Size = new System.Drawing.Size(455, 164);
+            this.groupBox2.Size = new System.Drawing.Size(446, 164);
             this.groupBox2.TabIndex = 1;
             this.groupBox2.TabStop = false;
             this.groupBox2.Text = "Settings";
+            // 
+            // checkBox_AutoSave
+            // 
+            this.checkBox_AutoSave.AutoSize = true;
+            this.checkBox_AutoSave.Enabled = false;
+            this.checkBox_AutoSave.Location = new System.Drawing.Point(236, 138);
+            this.checkBox_AutoSave.Name = "checkBox_AutoSave";
+            this.checkBox_AutoSave.Size = new System.Drawing.Size(79, 19);
+            this.checkBox_AutoSave.TabIndex = 19;
+            this.checkBox_AutoSave.Text = "Auto Save";
+            this.checkBox_AutoSave.UseVisualStyleBackColor = true;
+            // 
+            // textBox_Timer
+            // 
+            this.textBox_Timer.Enabled = false;
+            this.textBox_Timer.Location = new System.Drawing.Point(148, 137);
+            this.textBox_Timer.Name = "textBox_Timer";
+            this.textBox_Timer.Size = new System.Drawing.Size(59, 23);
+            this.textBox_Timer.TabIndex = 18;
+            // 
+            // label_Timer
+            // 
+            this.label_Timer.AutoSize = true;
+            this.label_Timer.Enabled = false;
+            this.label_Timer.Location = new System.Drawing.Point(104, 140);
+            this.label_Timer.Name = "label_Timer";
+            this.label_Timer.Size = new System.Drawing.Size(38, 15);
+            this.label_Timer.TabIndex = 17;
+            this.label_Timer.Text = "Timer";
+            // 
+            // checkBox_TimerMode
+            // 
+            this.checkBox_TimerMode.AutoSize = true;
+            this.checkBox_TimerMode.Location = new System.Drawing.Point(7, 139);
+            this.checkBox_TimerMode.Name = "checkBox_TimerMode";
+            this.checkBox_TimerMode.Size = new System.Drawing.Size(91, 19);
+            this.checkBox_TimerMode.TabIndex = 16;
+            this.checkBox_TimerMode.Text = "Timer Mode";
+            this.checkBox_TimerMode.UseVisualStyleBackColor = true;
+            this.checkBox_TimerMode.CheckedChanged += new System.EventHandler(this.checkBox_TimerMode_CheckedChanged);
+            // 
+            // comboBox_ReaderType
+            // 
+            this.comboBox_ReaderType.FormattingEnabled = true;
+            this.comboBox_ReaderType.Items.AddRange(new object[] {
+            "R220",
+            "R420"});
+            this.comboBox_ReaderType.Location = new System.Drawing.Point(87, 47);
+            this.comboBox_ReaderType.Name = "comboBox_ReaderType";
+            this.comboBox_ReaderType.Size = new System.Drawing.Size(120, 23);
+            this.comboBox_ReaderType.TabIndex = 5;
+            this.comboBox_ReaderType.Text = "R220";
+            this.comboBox_ReaderType.SelectedIndexChanged += new System.EventHandler(this.comboBox_ReaderType_SelectedIndexChanged);
+            // 
+            // label_ReaderType
+            // 
+            this.label_ReaderType.AutoSize = true;
+            this.label_ReaderType.Location = new System.Drawing.Point(6, 50);
+            this.label_ReaderType.Name = "label_ReaderType";
+            this.label_ReaderType.Size = new System.Drawing.Size(72, 15);
+            this.label_ReaderType.TabIndex = 4;
+            this.label_ReaderType.Text = "Reader Type";
             // 
             // textBox_Tari
             // 
             this.textBox_Tari.Location = new System.Drawing.Point(310, 99);
             this.textBox_Tari.Name = "textBox_Tari";
             this.textBox_Tari.Size = new System.Drawing.Size(121, 23);
-            this.textBox_Tari.TabIndex = 13;
+            this.textBox_Tari.TabIndex = 15;
+            this.textBox_Tari.Text = "10";
             // 
             // label_Tari
             // 
@@ -205,7 +284,7 @@
             this.label_Tari.Location = new System.Drawing.Point(233, 102);
             this.label_Tari.Name = "label_Tari";
             this.label_Tari.Size = new System.Drawing.Size(28, 15);
-            this.label_Tari.TabIndex = 12;
+            this.label_Tari.TabIndex = 14;
             this.label_Tari.Text = "Tari";
             // 
             // textBox_Population
@@ -213,7 +292,8 @@
             this.textBox_Population.Location = new System.Drawing.Point(87, 99);
             this.textBox_Population.Name = "textBox_Population";
             this.textBox_Population.Size = new System.Drawing.Size(120, 23);
-            this.textBox_Population.TabIndex = 11;
+            this.textBox_Population.TabIndex = 13;
+            this.textBox_Population.Text = "32";
             // 
             // label_Population
             // 
@@ -221,7 +301,7 @@
             this.label_Population.Location = new System.Drawing.Point(7, 102);
             this.label_Population.Name = "label_Population";
             this.label_Population.Size = new System.Drawing.Size(67, 15);
-            this.label_Population.TabIndex = 10;
+            this.label_Population.TabIndex = 12;
             this.label_Population.Text = "Population";
             // 
             // comboBox_SearchMode
@@ -238,7 +318,8 @@
             this.comboBox_SearchMode.Location = new System.Drawing.Point(310, 73);
             this.comboBox_SearchMode.Name = "comboBox_SearchMode";
             this.comboBox_SearchMode.Size = new System.Drawing.Size(121, 23);
-            this.comboBox_SearchMode.TabIndex = 9;
+            this.comboBox_SearchMode.TabIndex = 11;
+            this.comboBox_SearchMode.Text = "Dual_Target";
             // 
             // label_SearchMode
             // 
@@ -246,24 +327,8 @@
             this.label_SearchMode.Location = new System.Drawing.Point(233, 77);
             this.label_SearchMode.Name = "label_SearchMode";
             this.label_SearchMode.Size = new System.Drawing.Size(78, 15);
-            this.label_SearchMode.TabIndex = 8;
+            this.label_SearchMode.TabIndex = 10;
             this.label_SearchMode.Text = "Search Mode";
-            // 
-            // comboBox_ReaderMode
-            // 
-            this.comboBox_ReaderMode.FormattingEnabled = true;
-            this.comboBox_ReaderMode.Items.AddRange(new object[] {
-            "0 (Max Throughput)",
-            "1 (Hybrid)",
-            "2 (Dense Reader M4)",
-            "3 (Dense Reader M8)",
-            "4 (Max Miller)",
-            "1000 (Auto set Dense Reader)",
-            "1001 (Auto set Single Reader)"});
-            this.comboBox_ReaderMode.Location = new System.Drawing.Point(87, 73);
-            this.comboBox_ReaderMode.Name = "comboBox_ReaderMode";
-            this.comboBox_ReaderMode.Size = new System.Drawing.Size(120, 23);
-            this.comboBox_ReaderMode.TabIndex = 7;
             // 
             // label_ReaderMode
             // 
@@ -271,24 +336,28 @@
             this.label_ReaderMode.Location = new System.Drawing.Point(7, 77);
             this.label_ReaderMode.Name = "label_ReaderMode";
             this.label_ReaderMode.Size = new System.Drawing.Size(79, 15);
-            this.label_ReaderMode.TabIndex = 6;
+            this.label_ReaderMode.TabIndex = 8;
             this.label_ReaderMode.Text = "Reader Mode";
             // 
             // comboBox_Antennas
             // 
             this.comboBox_Antennas.FormattingEnabled = true;
-            this.comboBox_Antennas.Location = new System.Drawing.Point(87, 47);
+            this.comboBox_Antennas.Items.AddRange(new object[] {
+            "1",
+            "2"});
+            this.comboBox_Antennas.Location = new System.Drawing.Point(310, 47);
             this.comboBox_Antennas.Name = "comboBox_Antennas";
-            this.comboBox_Antennas.Size = new System.Drawing.Size(120, 23);
-            this.comboBox_Antennas.TabIndex = 5;
+            this.comboBox_Antennas.Size = new System.Drawing.Size(121, 23);
+            this.comboBox_Antennas.TabIndex = 7;
+            this.comboBox_Antennas.Text = "1";
             // 
             // label_Antenna
             // 
             this.label_Antenna.AutoSize = true;
-            this.label_Antenna.Location = new System.Drawing.Point(7, 50);
+            this.label_Antenna.Location = new System.Drawing.Point(234, 50);
             this.label_Antenna.Name = "label_Antenna";
             this.label_Antenna.Size = new System.Drawing.Size(58, 15);
-            this.label_Antenna.TabIndex = 4;
+            this.label_Antenna.TabIndex = 6;
             this.label_Antenna.Text = "Antennas";
             // 
             // comboBox_Frequency
@@ -298,6 +367,7 @@
             this.comboBox_Frequency.Name = "comboBox_Frequency";
             this.comboBox_Frequency.Size = new System.Drawing.Size(121, 23);
             this.comboBox_Frequency.TabIndex = 3;
+            this.comboBox_Frequency.Text = "924.375";
             // 
             // label_Frequency
             // 
@@ -314,6 +384,7 @@
             this.textBox_Power.Name = "textBox_Power";
             this.textBox_Power.Size = new System.Drawing.Size(120, 23);
             this.textBox_Power.TabIndex = 1;
+            this.textBox_Power.Text = "32.5";
             // 
             // label_TxPower
             // 
@@ -324,11 +395,40 @@
             this.label_TxPower.TabIndex = 0;
             this.label_TxPower.Text = "Power";
             // 
+            // comboBox_ReaderMode
+            // 
+            this.comboBox_ReaderMode.FormattingEnabled = true;
+            this.comboBox_ReaderMode.Items.AddRange(new object[] {
+            "0 (Max Throughput)",
+            "1 (Hybrid)",
+            "2 (Dense Reader M4)",
+            "3 (Dense Reader M8)",
+            "4 (Max Miller)",
+            "1000 (Auto set Dense Reader)",
+            "1001 (Auto set Single Reader)"});
+            this.comboBox_ReaderMode.Location = new System.Drawing.Point(87, 73);
+            this.comboBox_ReaderMode.Name = "comboBox_ReaderMode";
+            this.comboBox_ReaderMode.Size = new System.Drawing.Size(120, 23);
+            this.comboBox_ReaderMode.TabIndex = 9;
+            this.comboBox_ReaderMode.Text = "2 (Dense Reader M4)";
+            // 
+            // button_SaveSettings
+            // 
+            this.button_SaveSettings.Font = new System.Drawing.Font("Calibri", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.button_SaveSettings.Location = new System.Drawing.Point(322, 252);
+            this.button_SaveSettings.Name = "button_SaveSettings";
+            this.button_SaveSettings.Size = new System.Drawing.Size(121, 28);
+            this.button_SaveSettings.TabIndex = 2;
+            this.button_SaveSettings.Text = "Save Settings";
+            this.button_SaveSettings.UseVisualStyleBackColor = true;
+            this.button_SaveSettings.Click += new System.EventHandler(this.button_SaveSettings_Click);
+            // 
             // SettingsWindow
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(479, 273);
+            this.ClientSize = new System.Drawing.Size(467, 284);
+            this.Controls.Add(this.button_SaveSettings);
             this.Controls.Add(this.groupBox2);
             this.Controls.Add(this.groupBox1);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedToolWindow;
@@ -347,31 +447,40 @@
         #endregion
 
         private System.Windows.Forms.GroupBox groupBox1;
+        private System.Windows.Forms.RadioButton radioButton_IP;
         private System.Windows.Forms.TextBox textBox_IP;
         private System.Windows.Forms.RadioButton radioButton_MAC;
-        private System.Windows.Forms.RadioButton radioButton_IP;
-        private System.Windows.Forms.GroupBox groupBox2;
-        private System.Windows.Forms.TextBox textBox_MAC_1;
         private System.Windows.Forms.Label label1;
-        private System.Windows.Forms.Label label4;
-        private System.Windows.Forms.TextBox textBox_MAC_3;
-        private System.Windows.Forms.Label label3;
-        private System.Windows.Forms.TextBox textBox_MAC_2;
+        private System.Windows.Forms.TextBox textBox_MAC_1;
         private System.Windows.Forms.Label label2;
-        private System.Windows.Forms.ComboBox comboBox_SearchMode;
-        private System.Windows.Forms.Label label_SearchMode;
-        private System.Windows.Forms.ComboBox comboBox_ReaderMode;
-        private System.Windows.Forms.Label label_ReaderMode;
-        private System.Windows.Forms.ComboBox comboBox_Antennas;
-        private System.Windows.Forms.Label label_Antenna;
-        private System.Windows.Forms.ComboBox comboBox_Frequency;
-        private System.Windows.Forms.Label label_Frequency;
+        private System.Windows.Forms.TextBox textBox_MAC_2;
+        private System.Windows.Forms.Label label3;
+        private System.Windows.Forms.TextBox textBox_MAC_3;
+        private System.Windows.Forms.Label label4;
+
+        private System.Windows.Forms.GroupBox groupBox2;
         private System.Windows.Forms.TextBox textBox_Power;
         private System.Windows.Forms.Label label_TxPower;
-        private System.Windows.Forms.BindingSource bindingSource1;
-        private System.Windows.Forms.TextBox textBox_Tari;
-        private System.Windows.Forms.Label label_Tari;
+        private System.Windows.Forms.ComboBox comboBox_Frequency;
+        private System.Windows.Forms.Label label_Frequency;
+        private System.Windows.Forms.ComboBox comboBox_ReaderType;
+        private System.Windows.Forms.Label label_ReaderType;
+        private System.Windows.Forms.ComboBox comboBox_Antennas;
+        private System.Windows.Forms.Label label_Antenna;
+        private System.Windows.Forms.ComboBox comboBox_ReaderMode;
+        private System.Windows.Forms.Label label_ReaderMode;    
+        private System.Windows.Forms.ComboBox comboBox_SearchMode;
+        private System.Windows.Forms.Label label_SearchMode;
         private System.Windows.Forms.TextBox textBox_Population;
         private System.Windows.Forms.Label label_Population;
+        private System.Windows.Forms.TextBox textBox_Tari;
+        private System.Windows.Forms.Label label_Tari;
+        private System.Windows.Forms.BindingSource bindingSource1;
+        private System.Windows.Forms.CheckBox checkBox_TimerMode;
+        private System.Windows.Forms.CheckBox checkBox_AutoSave;
+        private System.Windows.Forms.TextBox textBox_Timer;
+        private System.Windows.Forms.Label label_Timer;
+        private System.Windows.Forms.Button button_SaveSettings;
+
     }
 }

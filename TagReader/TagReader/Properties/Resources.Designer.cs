@@ -91,12 +91,39 @@ namespace TagReader.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to ERROR!\n.
+        /// </summary>
+        internal static string ERROR {
+            get {
+                return ResourceManager.GetString("ERROR", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
         internal static System.Drawing.Bitmap ic_link {
             get {
                 object obj = ResourceManager.GetObject("ic_link", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Initializing....
+        /// </summary>
+        internal static string Initialize {
+            get {
+                return ResourceManager.GetString("Initialize", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to OK!\n.
+        /// </summary>
+        internal static string OK {
+            get {
+                return ResourceManager.GetString("OK", resourceCulture);
             }
         }
         
@@ -147,6 +174,15 @@ namespace TagReader.Properties {
             get {
                 object obj = ResourceManager.GetObject("stop", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to TIME OUT!\n.
+        /// </summary>
+        internal static string TIMEOUT {
+            get {
+                return ResourceManager.GetString("TIMEOUT", resourceCulture);
             }
         }
     }

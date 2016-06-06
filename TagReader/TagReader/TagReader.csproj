@@ -167,14 +167,6 @@
     <Content Include="Resources\stop.png" />
     <Content Include="RFIDReader\addROSpec.xml" />
     <Content Include="RFIDReader\setReaderConfig.xml" />
-    <None Include="ImgSrc\save.png" />
-    <None Include="ImgSrc\about.png" />
-    <None Include="ImgSrc\settings.png" />
-    <None Include="ImgSrc\refresh.png" />
-    <None Include="ImgSrc\delete.png" />
-    <None Include="ImgSrc\stop.png" />
-    <None Include="ImgSrc\play.png" />
-    <None Include="ImgSrc\ic_link.png" />
     <Content Include="Resources\about.png" />
     <Content Include="Resources\delete.png" />
     <Content Include="Resources\play.png" />

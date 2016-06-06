@@ -2,7 +2,7 @@
  * TagDetection based on Impinj LLRP Tool Kit (LTK)
  *
  * MarinYoung@163.com
- * Last Modified: 2015/11/26
+ * Last Modified: 2016/6/3
  * Reference:
  * [1]  https://support.impinj.com/hc/en-us/articles/202756168-Hello-LLRP-Low-Level-Reader-Protocol
  * [2]  https://support.impinj.com/hc/en-us/articles/202756348-Get-Low-Level-Reader-Data-with-LLRP
@@ -18,9 +18,11 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Data;
+using System.Diagnostics;
 using Org.LLRP.LTK.LLRPV1;
 using Org.LLRP.LTK.LLRPV1.Impinj;
 using Org.LLRP.LTK.LLRPV1.DataType;
+using TagReader.Properties;
 
 namespace TagReader.RFIDReader
 {
@@ -29,24 +31,84 @@ namespace TagReader.RFIDReader
         public static int TotalReport;
         public static int TotalEvent;
 
-        private static double _filteredVelocity;
-
-        // if LogToFile = true, output to log, else, output to console
-        private const bool LogToFile = true;
-        // convert raw-phase ([0, 4096]) to phase-angle (Radian, [0, 2*pi]), namely res = (_currentRfPhase / 4096) * 2 * Math.PI
-        public static double Convert2Radian = 2 * Math.PI / 4096.0;
-        // convert raw-phase ([0, 4096]) to phase (degree, [0, 360]), namely res = (_currentRfPhase / 4096) * 360;
+        public static bool LogToFile = false;
+        public static double Convert2Radian = 2 * Math.PI / 4096.0;        
         public static double Convert2Degree = 360.0 / 4096.0;
-
 
         public static DataTable Data;
         public static LLRPClient Reader;
-        public static ReaderSettings ReaderPara;
+        public static ReaderSettings ReaderParameters;
         public static FormTagReader MainForm;
 
 
+        public class MyException : ApplicationException
+        {
+            public MyException(string message) : base(message) { }
+
+            public override string Message => base.Message;
+        };
+
+
+        public static void Initialize_Configuration()
+        {
+            WriteMessage(Resources.Initialize);
+
+            // Create an instance of LLRP Reader client.
+            Reader = new LLRPClient();
+            // Create an DataTable to save the current state of Tag
+            Data = new DataTable();
+            // Set Reader Config in Default Way.
+            ReaderParameters = new ReaderSettings();
+
+            //Impinj Best Practice! Always Install the Impinj extensions
+            Impinj_Installer.Install();
+        }
+
+
+        public static void setReader_PARM()
+        {
+            if (ReaderParameters == null) return;
+            ReaderParameters.Ip = "192.168.1.222";
+            /*
+            ** Set Channel Index, 16 in total, which represents different frequency (MHz). Namely,
+            ** [1: 920.375]
+            ** [2: 920.875]
+            ** ...... 
+            ** [16: 924.375]
+            */
+            ReaderParameters.ChannelIndex = 16;
+            // Power(dbm) [10 : 0.25 : 32.5], 90 different values in total
+            ReaderParameters.TransmitPower = 32.5;
+            /*
+            ** ModeIndex  NAME                  SENSITIVITY     INTERFERENCE TOLERANCE
+            **   0        Max Throughput        good            poor
+            **   1        Hybrid                good            good
+            **   2        Dense Reader (M=4)    better          excellent
+            **   3        Dense Reader (M=8)    best            excellent
+            **   4*       MaxMiller             better          good
+            **   1000     Auto set Dense Reader
+            **   1001     Auto set Single Reader
+            **   * MaxMiller is not available in all regions
+            */
+            ReaderParameters.ModeIndex = 1000;
+            // ?
+            ReaderParameters.HopTableIndex = 0;
+            // ?
+            ReaderParameters.PeriodicTriggerValue = 0;
+            
+            ReaderParameters.TagPopulation = 32;
+            ReaderParameters.Tari = 10;
+            // ?
+            ReaderParameters.TagTransitTime = 0;
+            // ?
+            ReaderParameters.ReaderSensitivity = 1;
+            // each value in the array map to Antenna 1, Antenna 2, Antenna 3, Antenna 4, respectively.
+            ReaderParameters.AntennaId = new[] { true, false, false, false };
+        }
+
+
         #region Saving Data
-        public static void InitializeDataRow()
+        public static void Initialize_DataRow()
         {
             // Create columns in Data table
             Data.Columns.Add("EPC");
@@ -94,7 +156,7 @@ namespace TagReader.RFIDReader
             row["EPC"] = reportedTagStatus.Epc;
             row["TimeStamp"] = reportedTagStatus.TimeStamp;
             row["Antenna"] = reportedTagStatus.Antenna;
-            row["TXPower"] = ReaderPara.TransmitPower;
+            row["TXPower"] = ReaderParameters.TransmitPower;
             row["ChannelIndex"] = reportedTagStatus.ChannelIndex;
             row["Frequency"] = reportedTagStatus.Frequency;
             row["PeakRSSI"] = reportedTagStatus.Rssi;
@@ -114,9 +176,14 @@ namespace TagReader.RFIDReader
         }
 
 
-        public static void OutputLog(string message, bool log2File)
+        public static void WriteMessage(string message)
         {
-            if (log2File)
+            MainForm.Invoke(method: new Action(() =>
+            {
+                MainForm.UpdateStatusBar_Message(ref message);
+            }));
+            
+            if (LogToFile)
             {
                 LogHelper.WriteLog(typeof(ReaderWrapper), message);
             }
@@ -135,147 +202,18 @@ namespace TagReader.RFIDReader
             public ulong Timestamp { get; set; }
             public double PhaseDegree { get; set; }
             public int ReportCount { get; set; }
+            public double Velocity { get; set; }
 
             public PhaseAndTime(ulong time, double phase, ushort count)
             {
                 Timestamp = time;
                 PhaseDegree = phase;
                 ReportCount = count;
+                Velocity = 0;
             }
         }
 
-
-        private static Dictionary<TagInfos.Key, PhaseAndTime> savedPhases = new Dictionary<TagInfos.Key, PhaseAndTime>();
-
-        // Simple Handler for receiving the tag reports from the Reader
-        public static void reader_OnRoAccessReportReceived(MSG_RO_ACCESS_REPORT msg)
-        {
-            // Report could be empty
-            if (msg.TagReportData == null) return;
-
-            var currTagStatus = new TagStatus();
-            // Loop through and print out each tag
-            foreach (PARAM_TagReportData t in msg.TagReportData)
-            {
-                TotalReport++;
-                //MainForm.UpdateStatusBar_Report();
-
-                // just write out the EPC as a hex string for now. It is guaranteed to be
-                // in all LLRP reports regardless of default configuration
-                var data = "EPC: ";
-
-                if (t.EPCParameter[0].GetType() == typeof(PARAM_EPC_96))
-                {
-                    currTagStatus.Epc = ((PARAM_EPC_96)t.EPCParameter[0]).EPC.ToHexString();
-                }
-                else
-                {
-                    currTagStatus.Epc = ((PARAM_EPCData)t.EPCParameter[0]).EPC.ToHexString();
-                }
-                data += currTagStatus.Epc;
-
-                // collect some Data for velocity calculation
-                // NOTE: these could be NULL, so we should check
-                if (t.AntennaID != null)
-                {
-                    currTagStatus.Antenna = t.AntennaID.AntennaID;
-                    data += " ant: " + currTagStatus.Antenna;
-                }
-                if (t.ChannelIndex != null)
-                {
-                    currTagStatus.ChannelIndex = t.ChannelIndex.ChannelIndex;
-                    data += " ch: " + currTagStatus.ChannelIndex;
-                }
-                if (t.FirstSeenTimestampUTC != null)
-                {
-                    currTagStatus.TimeStamp = t.FirstSeenTimestampUTC.Microseconds;
-                    //Data += " time: " + CurrTagStatus.TimeStamp.ToString();
-                }
-                if (t.LastSeenTimestampUTC != null)
-                {
-                    currTagStatus.LastSeenTime = t.LastSeenTimestampUTC.Microseconds;
-                }
-                if (t.TagSeenCount != null)
-                {
-                    var key = new TagInfos.Key(currTagStatus.Epc, currTagStatus.Antenna, currTagStatus.ChannelIndex);
-                    if (savedPhases.ContainsKey(key))
-                    {
-                        savedPhases[key].ReportCount += 1;
-                    }
-                    else
-                    {
-                        savedPhases.Add(key, new PhaseAndTime(currTagStatus.TimeStamp, currTagStatus.PhaseDegree, 1));
-                    }
-                    //currTagStatus.TagSeenCount = t.TagSeenCount.TagCount;
-                    currTagStatus.TagSeenCount = savedPhases[key].ReportCount;
-                }
-
-                if (t.Custom != null)
-                {
-                    for (var x = 0; x < t.Custom.Length; x++)
-                    {
-                        // try to make a tag direction report out of it
-                        Object param = t.Custom[x];
-                        if (param is PARAM_ImpinjRFPhaseAngle)
-                        {
-                            currTagStatus.RawPhase = ((PARAM_ImpinjRFPhaseAngle)param).PhaseAngle;
-                            data += " Phase: " + currTagStatus.RawPhase;
-                        }
-                        else if (param is PARAM_ImpinjPeakRSSI)
-                        {
-                            currTagStatus.Rssi = ((PARAM_ImpinjPeakRSSI)param).RSSI;
-                            data += " RSSI: " + currTagStatus.Rssi;
-                        }
-                        else if (param is PARAM_ImpinjRFDopplerFrequency)
-                        {
-                            currTagStatus.DopplerShift = ((PARAM_ImpinjRFDopplerFrequency)param).DopplerFrequency;
-                            data += " DF: " + currTagStatus.DopplerShift;
-                        }
-
-                        // AppendRowToDatatable(ref currTagStatus);
-                    }
-                    UpdateTagStatus(ref currTagStatus);
-
-                    // estimate the velocity and print a filtered version
-                    double velocity;
-                    if (CalculateVelocity(out velocity, ref currTagStatus))
-                    {
-                        // keep a filtered value. Use a 1 pole IIR here for simplicity 
-                        _filteredVelocity = (6 * _filteredVelocity + 4 * velocity) / 10.0;
-
-                        /*
-                        string velData = string.Empty;
-                        if (_filteredVelocity > 0.25)
-                            velData += "---->";
-                        else if (_filteredVelocity < -0.25)
-                            velData += "<----";
-                        else
-                            velData += "     ";
-                        */
-                    }
-                    currTagStatus.Velocity = velocity;
-
-                    // save data
-                    AppendRowToDatatable(ref currTagStatus);
-
-                    // pass to Form
-                    try
-                    {
-                        MainForm.Invoke(method: new Action(() =>
-                        {
-                            MainForm.UpdateChart(ref currTagStatus);
-                            MainForm.AddListItem(ref currTagStatus);
-                        }));
-                    }
-                    catch
-                    {
-                        // ignored
-                    }
-                }
-                //Console.WriteLine(data);
-            } // end of foreach
-        }
-
+        private static Dictionary<TagInfos.Key, PhaseAndTime> ReportHistory = new Dictionary<TagInfos.Key, PhaseAndTime>();
 
         public static bool CalculateVelocity(out double velocity, ref TagStatus currTagStatus)
         {
@@ -291,11 +229,11 @@ namespace TagReader.RFIDReader
              * antenna and channel.  NOTE: this is just a simple example.
              * More sophisticated apps would create a database with
              * this information per-EPC */
-            if (savedPhases.ContainsKey(key))
+            if (ReportHistory.ContainsKey(key))
             {
                 /* positive velocity is moving towards the antenna */
-                var timeChangeUsec = (currTagStatus.TimeStamp - savedPhases[key].Timestamp);
-                double phaseChangeDegrees = currTagStatus.PhaseDegree - savedPhases[key].PhaseDegree;
+                var timeChangeUsec = (currTagStatus.TimeStamp - ReportHistory[key].Timestamp);
+                var phaseChangeDegrees = currTagStatus.PhaseDegree - ReportHistory[key].PhaseDegree;
 
                 /* always wrap the phase to between -180 and 180 */
                 while (phaseChangeDegrees < -180)
@@ -338,19 +276,153 @@ namespace TagReader.RFIDReader
 
                     retVal = true;
                 }
-                savedPhases[key].Timestamp = currTagStatus.TimeStamp;
-                savedPhases[key].PhaseDegree = currTagStatus.PhaseDegree;
+                ReportHistory[key].Timestamp = currTagStatus.TimeStamp;
+                ReportHistory[key].PhaseDegree = currTagStatus.PhaseDegree;
             }
             else
             {
-                Console.WriteLine("test");
-                savedPhases.Add(key, new PhaseAndTime(currTagStatus.TimeStamp, currTagStatus.PhaseDegree, 1));
+                ReportHistory.Add(key, new PhaseAndTime(currTagStatus.TimeStamp, currTagStatus.PhaseDegree, 1));
             }
             return retVal;
         }
 
 
-        // Simple Handler for receiving the Reader events from the Reader
+        /// <summary>
+        /// Simple Handler for receiving the tag reports from the Reader
+        /// </summary>
+        /// <param name="msg"></param>
+        public static void reader_OnRoAccessReportReceived(MSG_RO_ACCESS_REPORT msg)
+        {
+            // Report could be empty
+            if (msg.TagReportData == null) return;
+
+            var currTagStatus = new TagStatus();
+            // Loop through and print out each tag
+            foreach (PARAM_TagReportData t in msg.TagReportData)
+            {
+                TotalReport++;
+
+                MainForm.Invoke(method: new Action(() =>
+                {
+                    MainForm.UpdateStatusBar_Report();
+                }));
+                
+
+                // just write out the EPC as a hex string for now. It is guaranteed to be
+                // in all LLRP reports regardless of default configuration
+                var data = "EPC: ";
+                TagInfos.Key key = null;
+
+                if (t.EPCParameter[0].GetType() == typeof(PARAM_EPC_96))
+                {
+                    currTagStatus.Epc = ((PARAM_EPC_96)t.EPCParameter[0]).EPC.ToHexString();
+                }
+                else
+                {
+                    currTagStatus.Epc = ((PARAM_EPCData)t.EPCParameter[0]).EPC.ToHexString();
+                }
+                data += currTagStatus.Epc;
+
+                // collect some Data for velocity calculation
+                // NOTE: these could be NULL, so we should check
+                if (t.AntennaID != null)
+                {
+                    currTagStatus.Antenna = t.AntennaID.AntennaID;
+                    data += "\tant: " + currTagStatus.Antenna;
+                }
+                if (t.ChannelIndex != null)
+                {
+                    currTagStatus.ChannelIndex = t.ChannelIndex.ChannelIndex;
+                    data += "\tch: " + currTagStatus.ChannelIndex;
+                }
+                if (t.FirstSeenTimestampUTC != null)
+                {
+                    currTagStatus.TimeStamp = t.FirstSeenTimestampUTC.Microseconds;
+                    data += "\ttime: " + currTagStatus.TimeStamp.ToString();
+                }
+                if (t.LastSeenTimestampUTC != null)
+                {
+                    currTagStatus.LastSeenTime = t.LastSeenTimestampUTC.Microseconds;
+                }
+                if (t.TagSeenCount != null)
+                {
+                    key = new TagInfos.Key(currTagStatus.Epc, currTagStatus.Antenna, currTagStatus.ChannelIndex);
+                    if (ReportHistory.ContainsKey(key))
+                    {
+                        ReportHistory[key].ReportCount += 1;
+                    }
+                    else
+                    {
+                        ReportHistory.Add(key, new PhaseAndTime(currTagStatus.TimeStamp, currTagStatus.PhaseDegree, 1));
+                    }
+                    currTagStatus.TagSeenCount = ReportHistory[key].ReportCount;
+                }
+
+                if (t.Custom == null) continue;
+                for (var x = 0; x < t.Custom.Length; x++)
+                {
+                    // try to make a tag direction report out of it
+                    Object param = t.Custom[x];
+                    if (param is PARAM_ImpinjRFPhaseAngle)
+                    {
+                        currTagStatus.RawPhase = ((PARAM_ImpinjRFPhaseAngle)param).PhaseAngle;
+                        data += "\tPhase: " + currTagStatus.RawPhase;
+                    }
+                    else if (param is PARAM_ImpinjPeakRSSI)
+                    {
+                        currTagStatus.Rssi = ((PARAM_ImpinjPeakRSSI)param).RSSI;
+                        data += "\tRSSI: " + currTagStatus.Rssi;
+                    }
+                    else if (param is PARAM_ImpinjRFDopplerFrequency)
+                    {
+                        currTagStatus.DopplerShift = ((PARAM_ImpinjRFDopplerFrequency)param).DopplerFrequency;
+                        data += "\tDoppler: " + currTagStatus.DopplerShift;
+                    }
+                }
+                UpdateTagStatus(ref currTagStatus);
+
+                // estimate the velocity and print a filtered version
+                double velocity;
+                if (CalculateVelocity(out velocity, ref currTagStatus))
+                {
+                    // keep a filtered value. Use a 1 pole IIR here for simplicity 
+                    ReportHistory[key].Velocity = (6 * ReportHistory[key].Velocity + 4 * velocity) / 10.0;
+
+                    var v = ReportHistory[key].Velocity;
+                    if (v > 0.25)
+                        data += "---->";
+                    else if (v < -0.25)
+                        data += "<----";
+                    else
+                        data += "     ";
+                }
+                currTagStatus.Velocity = velocity;
+
+                // save data
+                AppendRowToDatatable(ref currTagStatus);
+
+                // pass to Form
+                try
+                {
+                    MainForm.Invoke(method: new Action(() =>
+                    {
+                        MainForm.UpdateChart(ref currTagStatus);
+                        MainForm.AddListItem(ref currTagStatus);
+                    }));
+                }
+                catch
+                {
+                    // ignored
+                }
+                //WriteMessage(data);
+            } // end of foreach
+        }
+
+
+        /// <summary>
+        /// Simple Handler for receiving the Reader events from the Reader
+        /// </summary>
+        /// <param name="msg"></param>
         public static void reader_OnReaderEventNotification(MSG_READER_EVENT_NOTIFICATION msg)
         {
             // Events could be empty
@@ -358,81 +430,89 @@ namespace TagReader.RFIDReader
 
             // Just write out the LTK-XML for now
             TotalEvent++;
-            //MainForm.UpdateStatusBar_Event();
+
+            MainForm.Invoke(method: new Action(() =>
+            {
+                MainForm.UpdateStatusBar_Event();
+            }));
+            
 
             // speedway readers always report UTC timestamp
             UNION_Timestamp t = msg.ReaderEventNotificationData.Timestamp;
             PARAM_UTCTimestamp ut = (PARAM_UTCTimestamp)t[0];
+            Debug.Assert(ut != null, "ut != null");
             double millis = (ut.Microseconds + 500) / 1000;
 
             // LLRP reports time in microseconds relative to the Unix Epoch
             DateTime epoch = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
             DateTime now = epoch.AddMilliseconds(millis);
 
-
-            string message = "======\tReader Event " + TotalEvent.ToString() + "\t======\n" + now.ToString("O");
-            OutputLog(message, LogToFile);
+            var message = "======\tReader Event " + TotalEvent + "\t======\n" + now.ToString("O");
+            WriteMessage(message);
 
             // this is how you would look for individual events of interest
             // Here I just dump the event
             if (msg.ReaderEventNotificationData.AISpecEvent != null)
             {
                 message = msg.ReaderEventNotificationData.AISpecEvent.ToString();
-                OutputLog(message, LogToFile);
+                WriteMessage(message);
             }
             if (msg.ReaderEventNotificationData.AntennaEvent != null)
             {
                 message = msg.ReaderEventNotificationData.AntennaEvent.ToString();
-                OutputLog(message, LogToFile);
+                WriteMessage(message);
             }
             if (msg.ReaderEventNotificationData.ConnectionAttemptEvent != null)
             {
                 message = msg.ReaderEventNotificationData.ConnectionAttemptEvent.ToString();
-                OutputLog(message, LogToFile);
+                WriteMessage(message);
             }
             if (msg.ReaderEventNotificationData.ConnectionCloseEvent != null)
             {
                 message = msg.ReaderEventNotificationData.ConnectionCloseEvent.ToString();
-                OutputLog(message, LogToFile);
+                WriteMessage(message);
             }
             if (msg.ReaderEventNotificationData.GPIEvent != null)
             {
                 message = msg.ReaderEventNotificationData.GPIEvent.ToString();
-                OutputLog(message, LogToFile);
+                WriteMessage(message);
             }
             if (msg.ReaderEventNotificationData.HoppingEvent != null)
             {
                 message = msg.ReaderEventNotificationData.HoppingEvent.ToString();
-                OutputLog(message, LogToFile);
+                WriteMessage(message);
             }
             if (msg.ReaderEventNotificationData.ReaderExceptionEvent != null)
             {
                 message = msg.ReaderEventNotificationData.ReaderExceptionEvent.ToString();
-                OutputLog(message, LogToFile);
+                WriteMessage(message);
             }
             if (msg.ReaderEventNotificationData.ReportBufferLevelWarningEvent != null)
             {
                 message = msg.ReaderEventNotificationData.ReportBufferLevelWarningEvent.ToString();
-                OutputLog(message, LogToFile);
+                WriteMessage(message);
             }
             if (msg.ReaderEventNotificationData.ReportBufferOverflowErrorEvent != null)
             {
                 message = msg.ReaderEventNotificationData.ReportBufferOverflowErrorEvent.ToString();
-                OutputLog(message, LogToFile);
+                WriteMessage(message);
             }
             if (msg.ReaderEventNotificationData.ROSpecEvent != null)
             {
                 message = msg.ReaderEventNotificationData.ROSpecEvent.ToString();
-                OutputLog(message, LogToFile);
+                WriteMessage(message);
             }
         }
         #endregion
 
 
         #region RoSpec Settings
+        /// <summary>
+        /// Deletes the ROSpec at the Reader corresponding to ROSpecID passed in this message.
+        /// </summary>
         public static void Delete_RoSpec()
         {
-            Console.Write("Delete RoSpec ----- ");
+            WriteMessage("Deleting RoSpec ----- ");
             MSG_DELETE_ROSPEC msg = new MSG_DELETE_ROSPEC();
             msg.ROSpecID = 1111;
             MSG_ERROR_MESSAGE msg_err;
@@ -443,30 +523,24 @@ namespace TagReader.RFIDReader
             {
                 if (rsp.LLRPStatus.StatusCode != ENUM_StatusCode.M_Success)
                 {
-                    Console.WriteLine(rsp.LLRPStatus.StatusCode.ToString());
-                    Reader.Close();
-                    Environment.Exit(1);
+                    WriteMessage(rsp.LLRPStatus.StatusCode.ToString());
                 }
-                Console.WriteLine("OK!\n");
+                WriteMessage(Resources.OK);
             }
             else if (msg_err != null)// Error
             {
-                Console.WriteLine(msg_err.ToString());
-                Reader.Close();
-                Environment.Exit(1);
+                WriteMessage(msg_err.ToString());
             }
             else// Timeout
             {
-                Console.WriteLine("DELETE_ROSPEC Command Timeout Error.");
-                Reader.Close();
-                Environment.Exit(1);
+                WriteMessage("DELETE_ROSPEC Command Timed out!");
             }
         }
 
 
         public static void Enable_Impinj_Extensions()
         {
-            Console.Write("Enabling Impinj Extensions ------ ");
+            WriteMessage("Enabling Impinj Extensions ------ ");
 
             MSG_ERROR_MESSAGE msg_err;
             MSG_IMPINJ_ENABLE_EXTENSIONS imp_msg = new MSG_IMPINJ_ENABLE_EXTENSIONS();
@@ -481,36 +555,33 @@ namespace TagReader.RFIDReader
             {
                 if (msg_rsp.LLRPStatus.StatusCode != ENUM_StatusCode.M_Success)
                 {
-                    Console.WriteLine(msg_rsp.LLRPStatus.StatusCode.ToString());
-                    Reader.Close();
-                    System.Environment.Exit(1);
+                    WriteMessage(msg_rsp.LLRPStatus.StatusCode.ToString());
                 }
-                Console.WriteLine("OK!\n");
+                WriteMessage(Resources.OK);
             }
             else if (msg_err != null)   // Error
             {
-                Console.WriteLine(msg_err.ToString());
-                Reader.Close();
-                System.Environment.Exit(1);
+                WriteMessage(msg_err.ToString());
             }
             else    // Time out
             {
-                Console.WriteLine("Enable Extensions Command Timed out\n");
-                Reader.Close();
-                System.Environment.Exit(1);
+                WriteMessage("Enable Extensions Command Timed out\n");
             }
         }
 
 
+        /// <summary>
+        /// Communicates the information of a ROSpec to the Reader.
+        /// </summary>
         public static void Add_RoSpec()
         {
-            Console.Write("Adding RoSpec ----- ");
+            WriteMessage("Adding RoSpec ----- ");
             MSG_ERROR_MESSAGE msg_err;
             // ROBoundarySpec
-            // Specifies the start and stop triggers for the ROSpec
-            // Immediate start trigger
-            // The Reader will start reading tags as soon as the ROSpec is enabled
-            // No stop trigger. Keep reading tags until the ROSpec is disabled.
+            // Specifies the Start and Stop triggers for the ROSpec
+            // Immediate Start trigger
+            // The Reader will Start reading tags as soon as the ROSpec is enabled
+            // No Stop trigger. Keep reading tags until the ROSpec is disabled.
             MSG_ADD_ROSPEC msg = new MSG_ADD_ROSPEC();
             msg.ROSpec = new PARAM_ROSpec();
             msg.ROSpec.CurrentState = ENUM_ROSpecState.Disabled;
@@ -529,12 +600,12 @@ namespace TagReader.RFIDReader
             PARAM_AISpec aiSpec = new PARAM_AISpec();
             aiSpec.AntennaIDs = new UInt16Array();
             // Enable all antennas
-            for (ushort i = 1; i <= ReaderPara.AntennaId.Length; ++i)
+            for (ushort i = 0; i < ReaderParameters.AntennaId.Length; ++i)
             {
-                if (ReaderPara.AntennaId[i - 1])
-                    aiSpec.AntennaIDs.Add(i);
+                if (ReaderParameters.AntennaId[i])
+                    aiSpec.AntennaIDs.Add(Convert.ToUInt16(i+1));
             }
-            // No AISpec stop trigger. It stops when the ROSpec stops.
+            // No AISpec Stop trigger. It stops when the ROSpec stops.
             aiSpec.AISpecStopTrigger = new PARAM_AISpecStopTrigger();
             aiSpec.AISpecStopTrigger.AISpecStopTriggerType = ENUM_AISpecStopTriggerType.Null;
 
@@ -565,7 +636,7 @@ namespace TagReader.RFIDReader
             msg.ROSpec.ROReportSpec.TagReportContentSelector.EnableTagSeenCount = true;
 
             // Send a report for every tag read
-            // Add 1)RF Phase Angle;  2)Peak RSSI  3)RF Doppler Frequency  fields to the report
+            // Add 1)RF Phase Angle;  2)Peak RSSI  3)RF Doppler Frequency
             PARAM_ImpinjTagReportContentSelector contentSelector = new PARAM_ImpinjTagReportContentSelector();
 
             contentSelector.ImpinjEnableSerializedTID = new PARAM_ImpinjEnableSerializedTID();
@@ -585,36 +656,31 @@ namespace TagReader.RFIDReader
             {
                 if (rsp.LLRPStatus.StatusCode != ENUM_StatusCode.M_Success)
                 {
-                    Console.WriteLine(rsp.LLRPStatus.StatusCode.ToString());
-                    Reader.Close();
-                    Environment.Exit(1);
+                    WriteMessage(rsp.LLRPStatus.StatusCode.ToString());
                 }
-                Console.WriteLine("OK!\n");
+                WriteMessage(Resources.OK);
             }
             else if (msg_err != null)
             {
-                Console.WriteLine("ERROR!\n\t");
-                Console.WriteLine(msg_err.ToString());
-                Reader.Close();
+                WriteMessage(Resources.ERROR);
+                WriteMessage(msg_err.ToString());
             }
             else
             {
-                Console.WriteLine("ADD_ROSPEC Command Timed out\n");
-                Reader.Close();
-                Environment.Exit(1);
+                WriteMessage("ADD_ROSPEC Command Timed out");
             }
         }
 
 
         static void Add_RoSpec_WithXML()
         {
-            Console.Write("Adding RoSpec from XML file -----\n");
+            WriteMessage("Adding RoSpec from XML file -----");
 
-            Org.LLRP.LTK.LLRPV1.DataType.Message obj;
+            Org.LLRP.LTK.LLRPV1.DataType.Message obj = new MSG_ADD_ROSPEC();
             ENUM_LLRP_MSG_TYPE msg_type;
 
             // read the XML from a file and validate its an ADD_ROSPEC
-            Console.Write("\tLoading XML file ----- ");
+            WriteMessage("\tLoading XML file ----- ");
             try
             {
                 FileStream fs = new FileStream(@"..\..\addRoSpec.xml", FileMode.Open);
@@ -626,20 +692,16 @@ namespace TagReader.RFIDReader
 
                 if (obj == null || msg_type != ENUM_LLRP_MSG_TYPE.ADD_ROSPEC)
                 {
-                    Console.WriteLine("Could not extract message from XML");
-                    Reader.Close();
-                    return;
+                    WriteMessage("Could not extract message from XML");
                 }
-                Console.Write("OK!\n");
+                Console.Write(Resources.OK);
             }
             catch
             {
-                Console.WriteLine("Unable to convert to valid XML");
-                Reader.Close();
-                return;
+                WriteMessage("Unable to convert From valid XML");
             }
 
-            Console.Write("\tAdding RoSpec ----- ");
+            WriteMessage("\tAdding RoSpec ----- ");
             // covert to the proper message type
             MSG_ADD_ROSPEC msg = (MSG_ADD_ROSPEC)obj;
 
@@ -650,31 +712,32 @@ namespace TagReader.RFIDReader
             {
                 if (rsp.LLRPStatus.StatusCode != ENUM_StatusCode.M_Success)
                 {
-                    Console.WriteLine(rsp.LLRPStatus.StatusCode.ToString());
-                    Reader.Close();
-                    Environment.Exit(1);
+                    WriteMessage(rsp.LLRPStatus.StatusCode.ToString());
                 }
-                Console.WriteLine("OK!\n");
+                WriteMessage(Resources.OK);
             }
             else if (msg_err != null)
             {
-                Console.WriteLine("ERROR!\n\t");
-                Console.WriteLine(msg_err.ToString());
-                Reader.Close();
-                Environment.Exit(1);
+                WriteMessage(Resources.ERROR);
+                WriteMessage(msg_err.ToString());
+                //Reader.Close();
+                //Environment.Exit(1);
             }
             else
             {
-                Console.WriteLine("ADD_ROSPEC Command Timed out\n");
-                Reader.Close();
-                Environment.Exit(1);
+                WriteMessage("ADD_ROSPEC Command Timed out\n");
             }
         }
 
 
+        /// <summary>
+        /// This message is issued by the Client to the Reader. Upon receiving the message, 
+        /// the Reader moves the ROSpec corresponding to the ROSpecID passed in this message 
+        /// from the disabled to the inactive state.
+        /// </summary>
         public static void Enable_RoSpec()
         {
-            Console.Write("Enabling RoSpec ----- ");
+            WriteMessage("Enabling RoSpec ----- ");
             MSG_ENABLE_ROSPEC msg = new MSG_ENABLE_ROSPEC();
             MSG_ERROR_MESSAGE msg_err;
             msg.ROSpecID = 1111; // this better match the ROSpec we created above
@@ -683,31 +746,29 @@ namespace TagReader.RFIDReader
             {
                 if (rsp.LLRPStatus.StatusCode != ENUM_StatusCode.M_Success)
                 {
-                    Console.WriteLine(rsp.LLRPStatus.StatusCode.ToString());
-                    Reader.Close();
-                    Environment.Exit(1);
+                    WriteMessage(rsp.LLRPStatus.StatusCode.ToString());
                 }
-                Console.WriteLine("OK!\n");
+                WriteMessage(Resources.OK);
             }
             else if (msg_err != null)//error
             {
-                Console.WriteLine("ERROR!\n\t");
-                Console.WriteLine(msg_err.ToString());
-                Reader.Close();
-                Environment.Exit(1);
+                WriteMessage(Resources.ERROR);
+                WriteMessage(msg_err.ToString());
             }
             else//time out
             {
-                Console.WriteLine("ENABLE_ROSPEC Command Timed out\n");
-                Reader.Close();
-                Environment.Exit(1);
+                WriteMessage("ENABLE_ROSPEC Command Timed out\n");
             }
         }
 
 
+        /// <summary>
+        /// Upon receiving the message, the Reader starts the ROSpec corresponding to ROSpecID passed 
+        /// in this message, if the ROSpec is in the enabled state.
+        /// </summary>
         public static void Start_RoSpec()
         {
-            Console.Write("Starting RoSpec ----- ");
+            WriteMessage("Starting RoSpec ----- ");
             MSG_START_ROSPEC msg = new MSG_START_ROSPEC();
             MSG_ERROR_MESSAGE msg_err;
             msg.ROSpecID = 1111;
@@ -716,31 +777,29 @@ namespace TagReader.RFIDReader
             {
                 if (rsp.LLRPStatus.StatusCode != ENUM_StatusCode.M_Success)
                 {
-                    Console.WriteLine(rsp.LLRPStatus.StatusCode.ToString());
-                    Reader.Close();
-                    Environment.Exit(1);
+                    WriteMessage(rsp.LLRPStatus.StatusCode.ToString());
                 }
-                Console.WriteLine("OK!\n");
-                Console.WriteLine(rsp.LLRPStatus.ToString());
+                WriteMessage(Resources.OK);
+                WriteMessage(rsp.LLRPStatus.ToString());
             }
             else if (msg_err != null)
             {
-                Console.WriteLine(msg_err.ToString());
-                Reader.Close();
-                Environment.Exit(1);
+                WriteMessage(msg_err.ToString());
             }
             else
             {
-                Console.WriteLine("START_ROSPEC Command Timed out\n");
-                Reader.Close();
-                Environment.Exit(1);
+                WriteMessage("START_ROSPEC Command Timed out\n");
             }
         }
 
 
+        /// <summary>
+        /// If the Reader was currently executing the ROSpec corresponding to the ROSpecID, 
+        /// and the Reader was able to stop executing that ROSpec, then the success code is returned. 
+        /// </summary>
         public static void Stop_RoSpec()
         {
-            Console.Write("Stopping RoSpec ----- ");
+            WriteMessage("Stopping RoSpec ----- ");
             MSG_STOP_ROSPEC msg = new MSG_STOP_ROSPEC();
             MSG_ERROR_MESSAGE msg_err;
             msg.ROSpecID = 1111;
@@ -749,30 +808,27 @@ namespace TagReader.RFIDReader
             {
                 if (rsp.LLRPStatus.StatusCode != ENUM_StatusCode.M_Success)
                 {
-                    Console.WriteLine(rsp.LLRPStatus.StatusCode.ToString());
-                    Reader.Close();
-                    Environment.Exit(1);
+                    WriteMessage(rsp.LLRPStatus.StatusCode.ToString());
                 }
-                Console.WriteLine("OK!\n");
+                WriteMessage(Resources.OK);
             }
             else if (msg_err != null)
             {
-                Console.WriteLine(msg_err.ToString());
-                Reader.Close();
-                Environment.Exit(1);
+                WriteMessage(msg_err.ToString());
             }
             else
             {
-                Console.WriteLine("STOP_ROSPEC Command Timed out\n");
-                Reader.Close();
-                Environment.Exit(1);
+                WriteMessage("STOP_ROSPEC Command Timed out\n");
             }
         }
 
 
+        /// <summary>
+        /// Requests to the Reader to retrieve all the ROSpecs that have been configured at the Reader.
+        /// </summary>
         public static void Get_RoSpec()
         {
-            Console.Write("Getting RoSpec ----- ");
+            WriteMessage("Getting RoSpec ----- ");
             MSG_GET_ROSPECS msg = new MSG_GET_ROSPECS();
             MSG_ERROR_MESSAGE msg_err;
             MSG_GET_ROSPECS_RESPONSE rsp = Reader.GET_ROSPECS(msg, out msg_err, 2000);
@@ -780,23 +836,17 @@ namespace TagReader.RFIDReader
             {
                 if (rsp.LLRPStatus.StatusCode != ENUM_StatusCode.M_Success)
                 {
-                    Console.WriteLine(rsp.LLRPStatus.StatusCode.ToString());
-                    Reader.Close();
-                    Environment.Exit(1);
+                    WriteMessage(rsp.LLRPStatus.StatusCode.ToString());
                 }
-                Console.WriteLine("OK!\n");
+                WriteMessage(Resources.OK);
             }
             else if (msg_err != null)
             {
-                Console.WriteLine(msg_err.ToString());
-                Reader.Close();
-                Environment.Exit(1);
+                WriteMessage(msg_err.ToString());
             }
             else
             {
-                Console.WriteLine("GET_ROSPEC Command Timed out\n");
-                Reader.Close();
-                Environment.Exit(1);
+                WriteMessage("GET_ROSPEC Command Timed out\n");
             }
         }
         #endregion
@@ -805,9 +855,9 @@ namespace TagReader.RFIDReader
         #region Reader Configuration
         public static void SetReaderConfig_WithXML()
         {
-            Console.Write("Adding SET_READER_CONFIG from XML file ----- ");
+            WriteMessage("SET_READER_CONFIG from XML file ----- ");
 
-            Org.LLRP.LTK.LLRPV1.DataType.Message obj;
+            Org.LLRP.LTK.LLRPV1.DataType.Message obj = new MSG_SET_READER_CONFIG();
 
             // read the XML from a file and validate its an ADD_ROSPEC
             try
@@ -822,16 +872,12 @@ namespace TagReader.RFIDReader
 
                 if (obj == null || msg_type != ENUM_LLRP_MSG_TYPE.SET_READER_CONFIG)
                 {
-                    Console.WriteLine("Could not extract message from XML");
-                    Reader.Close();
-                    return;
+                    WriteMessage("Could not extract message from XML");
                 }
             }
             catch
             {
-                Console.WriteLine("Unable to convert to valid XML");
-                Reader.Close();
-                return;
+                WriteMessage("Unable to convert to valid XML");
             }
 
             // Communicate that message to the Reader
@@ -842,36 +888,30 @@ namespace TagReader.RFIDReader
             {
                 if (rsp.LLRPStatus.StatusCode != ENUM_StatusCode.M_Success)
                 {
-                    Console.WriteLine(rsp.LLRPStatus.StatusCode.ToString());
-                    Console.WriteLine(rsp.LLRPStatus.ErrorDescription.ToString());
-                    Reader.Close();
-                    Environment.Exit(1);
+                    WriteMessage(rsp.LLRPStatus.StatusCode.ToString());
+                    WriteMessage(rsp.LLRPStatus.ErrorDescription.ToString());
                 }
-                Console.WriteLine("OK!\n");
+                WriteMessage(Resources.OK);
             }
             else if (msg_err != null)
             {
-                Console.WriteLine(msg_err.ToString());
-                Reader.Close();
-                Environment.Exit(1);
+                WriteMessage(msg_err.ToString());
             }
             else
             {
-                Console.WriteLine("SET_READER_CONFIG Command Timed out\n");
-                Reader.Close();
-                Environment.Exit(1);
+                WriteMessage("SET_READER_CONFIG Command Timed out\n");
             }
         }
 
 
         public static void SetReaderConfig()
         {
-            Console.Write("Set Reader Configuration ----- ");
+            WriteMessage("Set Reader Configuration ----- ");
 
             ushort numAntennaToSet = 0;
-            for (ushort i = 0; i < ReaderPara.AntennaId.Length; ++i)
+            for (ushort i = 0; i < ReaderParameters.AntennaId.Length; ++i)
             {
-                if (ReaderPara.AntennaId[i])
+                if (ReaderParameters.AntennaId[i])
                     ++numAntennaToSet;
             }
 
@@ -893,7 +933,7 @@ namespace TagReader.RFIDReader
             cmd.C1G2Filter[0].C1G2TagInventoryMask = new PARAM_C1G2TagInventoryMask();
             // Filter on EPC (memory bank #1)
             cmd.C1G2Filter[0].C1G2TagInventoryMask.MB = new TwoBits(1);
-            // Start filtering at the address 0x20 (the start of the third word).
+            // Start filtering at the address 0x20 (the Start of the third word).
             // The first two words of the EPC are the checksum and Protocol Control bits.
             cmd.C1G2Filter[0].C1G2TagInventoryMask.Pointer = 0x20;
             cmd.C1G2Filter[0].C1G2TagInventoryMask.TagMask = LLRPBitArray.FromHexString("78B5");
@@ -901,39 +941,21 @@ namespace TagReader.RFIDReader
 
             ///// set RF Control parameters
             cmd.C1G2RFControl = new PARAM_C1G2RFControl();
-            /*
-             * Set the reader mode to one of these values.
-             * 0 = Max Throughput
-             * 1 = Hybrid
-             * 2 = Dense Reader M4
-             * 3 = Dense Reader M8
-             * 4 = Max Miller
-             * 1000 = Autoset Dense Reader
-             * 1001 = Autoset Single Reader
-            */
-            cmd.C1G2RFControl.ModeIndex = ReaderPara.ModeIndex;
-            cmd.C1G2RFControl.Tari = 10;
+            cmd.C1G2RFControl.ModeIndex = ReaderParameters.ModeIndex;
+            cmd.C1G2RFControl.Tari = ReaderParameters.Tari;
 
             ///// set the session
             cmd.C1G2SingulationControl = new PARAM_C1G2SingulationControl();
             cmd.C1G2SingulationControl.Session = new TwoBits(1);
-            cmd.C1G2SingulationControl.TagPopulation = ReaderPara.TagPopulation;
-            cmd.C1G2SingulationControl.TagTransitTime = ReaderPara.TagTransitTime;
+            cmd.C1G2SingulationControl.TagPopulation = ReaderParameters.TagPopulation;
+            cmd.C1G2SingulationControl.TagTransitTime = ReaderParameters.TagTransitTime;
             cmd.TagInventoryStateAware = false;
 
-
-            /* 
-             * Search Mode
-             * possible values:
-             * Dual_Target;     Dual_Target_with_BtoASelect;
-             * No_Target;       Reader_Selected;
-             * Single_Target;   Single_Target_BtoA;         Single_Target_With_Suppression
-            */
             PARAM_ImpinjInventorySearchMode impinjSearchMod = new PARAM_ImpinjInventorySearchMode();
-            impinjSearchMod.InventorySearchMode = ENUM_ImpinjInventorySearchType.Single_Target;
+            impinjSearchMod.InventorySearchMode = ENUM_ImpinjInventorySearchType.Dual_Target;
 
             /*
-             * Duty Cycle
+            // Duty Cycle
             PARAM_ImpinjLowDutyCycle impinjDutyCycle = new PARAM_ImpinjLowDutyCycle();
             impinjDutyCycle.LowDutyCycleMode = ENUM_ImpinjLowDutyCycleMode.Disabled;
             impinjDutyCycle.EmptyFieldTimeout = 2000;
@@ -952,12 +974,14 @@ namespace TagReader.RFIDReader
                 msg.AntennaConfiguration[i].AntennaID = (ushort)(i + 1);
                 msg.AntennaConfiguration[i].RFReceiver = new PARAM_RFReceiver();
                 // Receive sensitivity.
-                msg.AntennaConfiguration[i].RFReceiver.ReceiverSensitivity = ReaderPara.ReaderSensitivity;
+                msg.AntennaConfiguration[i].RFReceiver.ReceiverSensitivity = ReaderParameters.ReaderSensitivity;
                 msg.AntennaConfiguration[i].RFTransmitter = new PARAM_RFTransmitter();
-                msg.AntennaConfiguration[i].RFTransmitter.ChannelIndex = ReaderPara.ChannelIndex;
-                msg.AntennaConfiguration[i].RFTransmitter.HopTableID = ReaderPara.HopTableIndex;
+                // Frequency
+                msg.AntennaConfiguration[i].RFTransmitter.ChannelIndex = ReaderParameters.ChannelIndex;
+                // ?
+                msg.AntennaConfiguration[i].RFTransmitter.HopTableID = ReaderParameters.HopTableIndex;
                 // TxPower
-                msg.AntennaConfiguration[i].RFTransmitter.TransmitPower = (ushort)(1 + (ReaderPara.TransmitPower - 10) / 0.25);
+                msg.AntennaConfiguration[i].RFTransmitter.TransmitPower = (ushort)(1 + (ReaderParameters.TransmitPower - 10) / 0.25);
             }
 
 
@@ -973,7 +997,7 @@ namespace TagReader.RFIDReader
 
             msg.KeepaliveSpec = new PARAM_KeepaliveSpec();
             msg.KeepaliveSpec.KeepaliveTriggerType = ENUM_KeepaliveTriggerType.Null;
-            msg.KeepaliveSpec.PeriodicTriggerValue = ReaderPara.PeriodicTriggerValue;
+            msg.KeepaliveSpec.PeriodicTriggerValue = ReaderParameters.PeriodicTriggerValue;
 
             msg.ReaderEventNotificationSpec = new PARAM_ReaderEventNotificationSpec();
             msg.ReaderEventNotificationSpec.EventNotificationState = new PARAM_EventNotificationState[5];
@@ -1030,31 +1054,25 @@ namespace TagReader.RFIDReader
             {
                 if (rsp.LLRPStatus.StatusCode != ENUM_StatusCode.M_Success)
                 {
-                    Console.WriteLine(rsp.LLRPStatus.StatusCode.ToString());
-                    Console.WriteLine(rsp.LLRPStatus.ErrorDescription.ToString());
-                    Reader.Close();
-                    Environment.Exit(1);
+                    WriteMessage(rsp.LLRPStatus.StatusCode.ToString());
+                    WriteMessage(rsp.LLRPStatus.ErrorDescription.ToString());
                 }
-                Console.WriteLine("OK!\n");
+                WriteMessage(Resources.OK);
             }
             else if (msg_err != null)
             {
-                Console.WriteLine(msg_err.ToString());
-                Reader.Close();
-                Environment.Exit(1);
+                WriteMessage(msg_err.ToString());
             }
             else
             {
-                Console.WriteLine("SET_READER_CONFIG Command Timed out\n");
-                Reader.Close();
-                Environment.Exit(1);
+                WriteMessage("SET_READER_CONFIG Command Timed out\n");
             }
         }
 
 
         public static void ResetReaderToFactoryDefault()
         {
-            Console.Write("Factory Default the Reader ----- ");
+            WriteMessage("Factory Default the Reader ----- ");
 
             // factory default the Reader
             MSG_SET_READER_CONFIG msg_cfg = new MSG_SET_READER_CONFIG();
@@ -1070,30 +1088,24 @@ namespace TagReader.RFIDReader
             {
                 if (rsp_cfg.LLRPStatus.StatusCode != ENUM_StatusCode.M_Success)
                 {
-                    Console.WriteLine(rsp_cfg.LLRPStatus.StatusCode.ToString());
-                    Reader.Close();
-                    Environment.Exit(1);
+                    WriteMessage(rsp_cfg.LLRPStatus.StatusCode.ToString());
                 }
-                Console.WriteLine("OK!\n");
+                WriteMessage(Resources.OK);
             }
             else if (msg_err != null) // error
             {
-                Console.WriteLine(msg_err.ToString());
-                Reader.Close();
-                Environment.Exit(1);
+                WriteMessage(msg_err.ToString());
             }
             else // time out
             {
-                Console.WriteLine("SET_READER_CONFIG Command Timed out\n");
-                Reader.Close();
-                Environment.Exit(1);
+                WriteMessage("SET_READER_CONFIG Command Timed out\n");
             }
         }
 
 
         public static void GetReaderCapabilities()
         {
-            Console.Write("Getting Reader Capabilities ----- ");
+            WriteMessage("Getting Reader Capabilities ----- ");
 
             MSG_GET_READER_CAPABILITIES cap = new MSG_GET_READER_CAPABILITIES
             {
@@ -1109,23 +1121,17 @@ namespace TagReader.RFIDReader
             {
                 if (msg_rsp.LLRPStatus.StatusCode != ENUM_StatusCode.M_Success)
                 {
-                    Console.WriteLine(msg_rsp.LLRPStatus.StatusCode.ToString());
-                    Reader.Close();
-                    Environment.Exit(1);
+                    WriteMessage(msg_rsp.LLRPStatus.StatusCode.ToString());
                 }
-                Console.WriteLine("OK!\n");
+                WriteMessage(Resources.OK);
             }
             else if (msg_err != null)
             {
-                Console.WriteLine(msg_err.ToString());
-                Reader.Close();
-                Environment.Exit(1);
+                WriteMessage(msg_err.ToString());;
             }
             else
             {
-                Console.WriteLine("GET Reader Capabilities Command Timed out\n");
-                Reader.Close();
-                Environment.Exit(1);
+                WriteMessage("GET Reader Capabilities Command Timed out\n");
             }
 
             // Get the Reader model number
@@ -1139,16 +1145,14 @@ namespace TagReader.RFIDReader
             }
             else
             {
-                Console.WriteLine("Could not determine Reader model number\n");
-                Reader.Close();
-                Environment.Exit(1);
+                WriteMessage("Could not determine Reader model number\n");
             }
         }
 
 
         public static void GetReaderConfig()
         {
-            Console.Write("Get Reader Config ----- ");
+            WriteMessage("Get Reader Config ----- ");
 
             MSG_GET_READER_CONFIG msg = new MSG_GET_READER_CONFIG();
             msg.AntennaID = 1;
@@ -1159,53 +1163,48 @@ namespace TagReader.RFIDReader
             {
                 if (rsp.LLRPStatus.StatusCode != ENUM_StatusCode.M_Success)
                 {
-                    Console.WriteLine(rsp.LLRPStatus.StatusCode.ToString());
-                    Console.WriteLine(rsp.LLRPStatus.ErrorDescription.ToString());
-                    Reader.Close();
-                    Environment.Exit(1);
+                    WriteMessage(rsp.LLRPStatus.StatusCode.ToString());
+                    WriteMessage(rsp.LLRPStatus.ErrorDescription);
                 }
-                Console.WriteLine("OK!\n");
+                WriteMessage(Resources.OK);
             }
             else if (msg_err != null)
             {
-                Console.WriteLine(msg_err.ToString());
-                Reader.Close();
-                Environment.Exit(1);
+                WriteMessage(msg_err.ToString());
             }
             else
             {
-                Console.WriteLine("GET_READER_CONFIG Command Timed out\n");
-                Reader.Close();
-                Environment.Exit(1);
+                WriteMessage("GET_READER_CONFIG Command Timed out\n");
             }
         }
 
 
-        public static bool ConnectTo(string ip)
+        public static bool ConnectToReader()
         {
-            Console.Write("Connecting To Reader ----- ");
+            WriteMessage("Connecting To Reader ----- ");
 
             ENUM_ConnectionAttemptStatusType status;
 
             //Open the Reader connection.  Timeout after 5 seconds
-            bool ret = Reader.Open(ip, 2000, out status);
+            bool ret = Reader.Open(ReaderParameters.Ip, 5000, out status);
+            ReaderWrapper.Initialize_DataRow();
 
             //Ensure that the open succeeded and that the Reader
             // returned the correct connection status result
             if (!ret || status != ENUM_ConnectionAttemptStatusType.Success)
             {
-                Console.WriteLine(status.ToString());
-                Console.WriteLine("Failed to Connect to Reader \n");
+                WriteMessage(status.ToString());
+                WriteMessage("Failed to Connect to Reader \n");
                 return false;
             }
-            Console.WriteLine("OK!\n");
+            WriteMessage(Resources.OK);
             return true;
         }
 
 
         public static void reader_AddSubscription()
         {
-            Console.WriteLine("Adding Event Handlers...\n");
+            WriteMessage("Adding Event Handlers...");
             Reader.OnReaderEventNotification += new delegateReaderEventNotification(reader_OnReaderEventNotification);
             Reader.OnRoAccessReportReceived += new delegateRoAccessReport(reader_OnRoAccessReportReceived);
         }
@@ -1213,64 +1212,32 @@ namespace TagReader.RFIDReader
 
         public static void reader_CleanSubscription()
         {
-            Console.WriteLine("Closing...\n");
+            WriteMessage("Closing...");
             Reader.Close();
             Reader.OnReaderEventNotification -= new delegateReaderEventNotification(reader_OnReaderEventNotification);
             Reader.OnRoAccessReportReceived -= new delegateRoAccessReport(reader_OnRoAccessReportReceived);
         }
-
-
-        public static void InitializeConfiguration()
-        {
-            Console.WriteLine("Initializing...\n");
-
-            // Create an instance of LLRP Reader client.
-            Reader = new LLRPClient();
-            // Create an DataTable to save the current state of Tag
-            Data = new DataTable();
-            // Set Reader Config in Default Way.
-            ReaderPara = new ReaderSettings();
-
-            //Impinj Best Practice! Always Install the Impinj extensions
-            Impinj_Installer.Install();
-        }
-
-
-        public static void setReader_PARM()
-        {
-            if (ReaderPara == null) return;
-            /*
-            ** Set Channel Index, 16 in total, which represents different frequency (MHz). Namely,
-            ** [1: 920.375]
-            ** [2: 920.875]
-            ** ...... 
-            ** [16: 924.375]
-            */
-            ReaderPara.ChannelIndex = 16;
-            // Power(dbm) [10 : 0.25 : 32.5], 90 different values in total
-            ReaderPara.TransmitPower = 32.5;
-            /*
-            ** ModeIndex  NAME                  SENSITIVITY     INTERFERENCE TOLERANCE
-            **   0        Max Throughput        good            poor
-            **   1        Hybrid                good            good
-            **   2        Dense Reader (M=4)    better          excellent
-            **   3        Dense Reader (M=8)    best            excellent
-            **   4*       MaxMiller             better          good
-            **   1000     Auto set Dense Reader
-            **   1001     Auto set Single Reader
-            **   * MaxMiller is not available in all regions
-            */
-            ReaderPara.ModeIndex = 2;
-            ReaderPara.HopTableIndex = 0;
-            ReaderPara.PeriodicTriggerValue = 0;
-            ReaderPara.TagPopulation = 2;
-            ReaderPara.TagTransitTime = 0;
-            ReaderPara.ReaderSensitivity = 1;
-            // each value in the array map to Antenna 1, Antenna 2, Antenna 3, Antenna 4, respectively.
-            ReaderPara.AntennaId = new[] { true, false, false, false };
-        }
         #endregion
 
+        public static void Start()
+        {
+            reader_AddSubscription();
+            ReaderWrapper.ResetReaderToFactoryDefault();
+            //ReaderWrapper.GetReaderCapabilities();
+            ReaderWrapper.Enable_Impinj_Extensions();
 
-    }
+            ReaderWrapper.SetReaderConfig(); //SetReaderConfig_WithXML();
+            ReaderWrapper.Add_RoSpec(); //Add_RoSpec_WithXML();
+            ReaderWrapper.Enable_RoSpec();
+        }
+
+        public static void Stop()
+        {
+            ReaderWrapper.Stop_RoSpec();
+            ReaderWrapper.ResetReaderToFactoryDefault();
+
+            // clean up the Reader
+            ReaderWrapper.reader_CleanSubscription();
+        }
+    } // end of ReaderWrapper
 }

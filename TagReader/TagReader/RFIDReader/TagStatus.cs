@@ -1,10 +1,11 @@
-﻿namespace TagReader
+﻿namespace TagReader.RFIDReader
 {
     public class TagStatus
     {
         public string Epc { get; set; }             //
         public ulong  LastSeenTime { get; set; }    //
-        public ulong  TimeStamp { get; set; }       //
+        public ulong  FirstSeenTime { get; set; }   //
+        public ulong  TimeStamp { get; set; }       
         public ushort Antenna { get; set; }         //
         public double TxPower { get; set; }
         public ushort ChannelIndex { get; set; }    //

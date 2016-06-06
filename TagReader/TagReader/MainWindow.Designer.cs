@@ -122,9 +122,9 @@ namespace TagReader
             this.columnHeader_TagCount});
             this.listView_Data.Font = new System.Drawing.Font("Calibri", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.listView_Data.GridLines = true;
-            this.listView_Data.Location = new System.Drawing.Point(12, 52);
+            this.listView_Data.Location = new System.Drawing.Point(12, 48);
             this.listView_Data.Name = "listView_Data";
-            this.listView_Data.Size = new System.Drawing.Size(897, 265);
+            this.listView_Data.Size = new System.Drawing.Size(897, 245);
             this.listView_Data.TabIndex = 9;
             this.listView_Data.UseCompatibleStateImageBehavior = false;
             this.listView_Data.View = System.Windows.Forms.View.Details;
@@ -196,9 +196,9 @@ namespace TagReader
             legend1.Docking = System.Windows.Forms.DataVisualization.Charting.Docking.Bottom;
             legend1.Name = "Legend1";
             this.chart_Rssi.Legends.Add(legend1);
-            this.chart_Rssi.Location = new System.Drawing.Point(12, 356);
+            this.chart_Rssi.Location = new System.Drawing.Point(12, 329);
             this.chart_Rssi.Name = "chart_Rssi";
-            this.chart_Rssi.Size = new System.Drawing.Size(283, 256);
+            this.chart_Rssi.Size = new System.Drawing.Size(283, 236);
             this.chart_Rssi.TabIndex = 13;
             this.chart_Rssi.Text = "chart_Rssi";
             title1.Name = "Title_Rssi";
@@ -225,9 +225,9 @@ namespace TagReader
             legend2.Docking = System.Windows.Forms.DataVisualization.Charting.Docking.Bottom;
             legend2.Name = "Legend2";
             this.chart_Phase.Legends.Add(legend2);
-            this.chart_Phase.Location = new System.Drawing.Point(319, 356);
+            this.chart_Phase.Location = new System.Drawing.Point(319, 329);
             this.chart_Phase.Name = "chart_Phase";
-            this.chart_Phase.Size = new System.Drawing.Size(283, 256);
+            this.chart_Phase.Size = new System.Drawing.Size(283, 236);
             this.chart_Phase.TabIndex = 14;
             this.chart_Phase.Text = "chart_Phase";
             title2.Name = "Title_Phase";
@@ -253,9 +253,9 @@ namespace TagReader
             legend3.Docking = System.Windows.Forms.DataVisualization.Charting.Docking.Bottom;
             legend3.Name = "Legend3";
             this.chart_Doppler.Legends.Add(legend3);
-            this.chart_Doppler.Location = new System.Drawing.Point(626, 356);
+            this.chart_Doppler.Location = new System.Drawing.Point(626, 329);
             this.chart_Doppler.Name = "chart_Doppler";
-            this.chart_Doppler.Size = new System.Drawing.Size(283, 256);
+            this.chart_Doppler.Size = new System.Drawing.Size(283, 236);
             this.chart_Doppler.TabIndex = 15;
             this.chart_Doppler.Text = "chart_Doppler";
             title3.Name = "Title_Doppler";
@@ -266,7 +266,7 @@ namespace TagReader
             // 
             this.label_EPC.AutoSize = true;
             this.label_EPC.Font = new System.Drawing.Font("Calibri", 9.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label_EPC.Location = new System.Drawing.Point(12, 325);
+            this.label_EPC.Location = new System.Drawing.Point(12, 300);
             this.label_EPC.Name = "label_EPC";
             this.label_EPC.Size = new System.Drawing.Size(31, 15);
             this.label_EPC.TabIndex = 16;
@@ -275,16 +275,16 @@ namespace TagReader
             // comboBoxEPCs
             // 
             this.comboBoxEPCs.FormattingEnabled = true;
-            this.comboBoxEPCs.Location = new System.Drawing.Point(49, 323);
+            this.comboBoxEPCs.Location = new System.Drawing.Point(49, 298);
             this.comboBoxEPCs.Name = "comboBoxEPCs";
-            this.comboBoxEPCs.Size = new System.Drawing.Size(174, 21);
+            this.comboBoxEPCs.Size = new System.Drawing.Size(174, 20);
             this.comboBoxEPCs.TabIndex = 17;
             // 
             // label_Antenna
             // 
             this.label_Antenna.AutoSize = true;
             this.label_Antenna.Font = new System.Drawing.Font("Calibri", 9.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label_Antenna.Location = new System.Drawing.Point(261, 325);
+            this.label_Antenna.Location = new System.Drawing.Point(261, 300);
             this.label_Antenna.Name = "label_Antenna";
             this.label_Antenna.Size = new System.Drawing.Size(58, 15);
             this.label_Antenna.TabIndex = 18;
@@ -293,9 +293,9 @@ namespace TagReader
             // comboBoxAntennas
             // 
             this.comboBoxAntennas.FormattingEnabled = true;
-            this.comboBoxAntennas.Location = new System.Drawing.Point(325, 323);
+            this.comboBoxAntennas.Location = new System.Drawing.Point(325, 298);
             this.comboBoxAntennas.Name = "comboBoxAntennas";
-            this.comboBoxAntennas.Size = new System.Drawing.Size(121, 21);
+            this.comboBoxAntennas.Size = new System.Drawing.Size(121, 20);
             this.comboBoxAntennas.TabIndex = 19;
             // 
             // menuStrip1
@@ -384,7 +384,7 @@ namespace TagReader
             this.ToolStripMenuItem_Settings.Name = "ToolStripMenuItem_Settings";
             this.ToolStripMenuItem_Settings.Size = new System.Drawing.Size(116, 22);
             this.ToolStripMenuItem_Settings.Text = "Settings";
-            this.ToolStripMenuItem_Settings.Click += new System.EventHandler(this.ToolStripMenuItem_Settings_Click);
+            this.ToolStripMenuItem_Settings.Click += new System.EventHandler(this.button_Settings_Click);
             // 
             // viewToolStripMenuItem
             // 
@@ -440,7 +440,7 @@ namespace TagReader
             this.toolStripButton_Refresh,
             this.toolStripSeparator2,
             this.toolStripButton_Settings});
-            this.toolStrip_QuickAccess.Location = new System.Drawing.Point(0, 24);
+            this.toolStrip_QuickAccess.Location = new System.Drawing.Point(0, 22);
             this.toolStrip_QuickAccess.Name = "toolStrip_QuickAccess";
             this.toolStrip_QuickAccess.Size = new System.Drawing.Size(438, 25);
             this.toolStrip_QuickAccess.TabIndex = 21;
@@ -518,7 +518,7 @@ namespace TagReader
             this.toolStripButton_Settings.Name = "toolStripButton_Settings";
             this.toolStripButton_Settings.Size = new System.Drawing.Size(69, 22);
             this.toolStripButton_Settings.Text = "Settings";
-            this.toolStripButton_Settings.Click += new System.EventHandler(this.toolStripButton_Settings_Click);
+            this.toolStripButton_Settings.Click += new System.EventHandler(this.button_Settings_Click);
             // 
             // statusStrip1
             // 
@@ -530,16 +530,16 @@ namespace TagReader
             this.toolStripStatusLabel_NameEvent,
             this.toolStripStatusLabel_TotalEvent,
             this.toolStripStatusLabel_RunTime});
-            this.statusStrip1.Location = new System.Drawing.Point(0, 616);
+            this.statusStrip1.Location = new System.Drawing.Point(0, 568);
             this.statusStrip1.Name = "statusStrip1";
-            this.statusStrip1.Size = new System.Drawing.Size(921, 23);
+            this.statusStrip1.Size = new System.Drawing.Size(921, 22);
             this.statusStrip1.TabIndex = 22;
             this.statusStrip1.Text = "statusStrip1";
             // 
             // toolStripStatusLabel_Message
             // 
             this.toolStripStatusLabel_Message.Name = "toolStripStatusLabel_Message";
-            this.toolStripStatusLabel_Message.Size = new System.Drawing.Size(568, 18);
+            this.toolStripStatusLabel_Message.Size = new System.Drawing.Size(537, 17);
             this.toolStripStatusLabel_Message.Spring = true;
             this.toolStripStatusLabel_Message.Text = "message";
             this.toolStripStatusLabel_Message.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
@@ -547,39 +547,39 @@ namespace TagReader
             // toolStripProgressBar1
             // 
             this.toolStripProgressBar1.Name = "toolStripProgressBar1";
-            this.toolStripProgressBar1.Size = new System.Drawing.Size(100, 17);
+            this.toolStripProgressBar1.Size = new System.Drawing.Size(100, 16);
             // 
             // toolStripStatusLabel_NameReport
             // 
             this.toolStripStatusLabel_NameReport.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
             this.toolStripStatusLabel_NameReport.Name = "toolStripStatusLabel_NameReport";
-            this.toolStripStatusLabel_NameReport.Size = new System.Drawing.Size(71, 18);
+            this.toolStripStatusLabel_NameReport.Size = new System.Drawing.Size(71, 17);
             this.toolStripStatusLabel_NameReport.Text = "Total Report";
             // 
             // toolStripStatusLabel_TotalReport
             // 
             this.toolStripStatusLabel_TotalReport.Name = "toolStripStatusLabel_TotalReport";
-            this.toolStripStatusLabel_TotalReport.Size = new System.Drawing.Size(13, 18);
+            this.toolStripStatusLabel_TotalReport.Size = new System.Drawing.Size(13, 17);
             this.toolStripStatusLabel_TotalReport.Text = "0";
             // 
             // toolStripStatusLabel_NameEvent
             // 
             this.toolStripStatusLabel_NameEvent.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
             this.toolStripStatusLabel_NameEvent.Name = "toolStripStatusLabel_NameEvent";
-            this.toolStripStatusLabel_NameEvent.Size = new System.Drawing.Size(65, 18);
+            this.toolStripStatusLabel_NameEvent.Size = new System.Drawing.Size(65, 17);
             this.toolStripStatusLabel_NameEvent.Text = "Total Event";
             // 
             // toolStripStatusLabel_TotalEvent
             // 
             this.toolStripStatusLabel_TotalEvent.Name = "toolStripStatusLabel_TotalEvent";
-            this.toolStripStatusLabel_TotalEvent.Size = new System.Drawing.Size(13, 18);
+            this.toolStripStatusLabel_TotalEvent.Size = new System.Drawing.Size(13, 17);
             this.toolStripStatusLabel_TotalEvent.Text = "0";
             // 
             // toolStripStatusLabel_RunTime
             // 
             this.toolStripStatusLabel_RunTime.Image = global::TagReader.Properties.Resources.alarm;
             this.toolStripStatusLabel_RunTime.Name = "toolStripStatusLabel_RunTime";
-            this.toolStripStatusLabel_RunTime.Size = new System.Drawing.Size(74, 18);
+            this.toolStripStatusLabel_RunTime.Size = new System.Drawing.Size(74, 17);
             this.toolStripStatusLabel_RunTime.Text = "Run Time";
             // 
             // toolStrip_ReaderSettings
@@ -592,7 +592,7 @@ namespace TagReader
             this.toolStripTextBox_Power,
             this.toolStripLabel_Frequency,
             this.toolStripComboBox_Frequency});
-            this.toolStrip_ReaderSettings.Location = new System.Drawing.Point(438, 24);
+            this.toolStrip_ReaderSettings.Location = new System.Drawing.Point(438, 22);
             this.toolStrip_ReaderSettings.Name = "toolStrip_ReaderSettings";
             this.toolStrip_ReaderSettings.Size = new System.Drawing.Size(428, 25);
             this.toolStrip_ReaderSettings.TabIndex = 23;
@@ -653,10 +653,10 @@ namespace TagReader
             // 
             // FormTagReader
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
+            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
-            this.ClientSize = new System.Drawing.Size(921, 639);
+            this.ClientSize = new System.Drawing.Size(921, 590);
             this.Controls.Add(this.toolStrip_ReaderSettings);
             this.Controls.Add(this.statusStrip1);
             this.Controls.Add(this.toolStrip_QuickAccess);
@@ -748,8 +748,8 @@ namespace TagReader
         private ToolStripStatusLabel toolStripStatusLabel_NameReport;
         private ToolStripStatusLabel toolStripStatusLabel_NameEvent;
         private ToolStripStatusLabel toolStripStatusLabel_RunTime;
-        private ToolStripStatusLabel toolStripStatusLabel_TotalReport;
         private ToolStripStatusLabel toolStripStatusLabel_TotalEvent;
+        public ToolStripStatusLabel toolStripStatusLabel_TotalReport;
     }
 }
 
