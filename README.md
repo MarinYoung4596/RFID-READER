@@ -13,6 +13,7 @@ The GUI Version of TagDetection.
 
 Result:
 ![MainWindow][1]
+![SettingsWindow][2]
 
 # DataAnalysis
 This project was used to localize the position of antenna according its accumulated phases. For more details, please read the following publications.
@@ -22,8 +23,9 @@ This project was used to localize the position of antenna according its accumula
 
 
 Result:
-![Statistical Result][2]
+![Statistical Result][3]
 
 
   [1]: https://github.com/MarinYoung4596/RFID-READER/blob/master/TagReader/MainWindow.png
-  [2]: https://github.com/MarinYoung4596/RFID-READER/blob/master/DataAnalysis/MATLAB/COTS/sketch.png
+  [2]: https://github.com/MarinYoung4596/RFID-READER/blob/master/TagReader/SettingsWindow.png
+  [3]: https://github.com/MarinYoung4596/RFID-READER/blob/master/DataAnalysis/MATLAB/COTS/sketch.png
