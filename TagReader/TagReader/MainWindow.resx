@@ -173,8 +173,8 @@
     <value>
         iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8
         YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAB3SURBVFhHYxgFMHA+3l/garS37bVID3taYpAdILug1iIA
-        SOJ6kPO78wFe369EuX2jBQaZDbIDZBfUWgQAuQ6k6HqU139aYpAdILug1iLAqANGHTDqgFEHjDpg1AGj
-        Dhh1wKgDRh0w6oABd8CAd0wGvGs2QgEDAwC1WjwegHWfhAAAAABJRU5ErkJggg==
+        SOJ6kPO78/5e369EuX2jBQaZDbIDZBfUWgQAuQ6k6HqU139aYpAdILug1iLAqANGHTDqgFEHjDpg1AGj
+        Dhh1wKgDRh0w6oABd8CAd0wGvGs2QgEDAwCVGDwaET6+ZAAAAABJRU5ErkJggg==
 </value>
   </data>
   <metadata name="statusStrip1.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
@@ -184,7 +184,7 @@
     <value>353, 17</value>
   </metadata>
   <metadata name="$this.TrayHeight" type="System.Int32, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
-    <value>70</value>
+    <value>37</value>
   </metadata>
   <data name="$this.Icon" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
     <value>

@@ -45,13 +45,13 @@ namespace TagReader.RFIDReader
         {
             public MyException(string message) : base(message) { }
 
-            public override string Message => base.Message;
+            // public override string Message => base.Message;
         };
 
 
         public static void Initialize_Configuration()
         {
-            WriteMessage(Resources.Initialize);
+            //WriteMessage(Resources.Initialize);
 
             // Create an instance of LLRP Reader client.
             Reader = new LLRPClient();
@@ -62,48 +62,6 @@ namespace TagReader.RFIDReader
 
             //Impinj Best Practice! Always Install the Impinj extensions
             Impinj_Installer.Install();
-        }
-
-
-        public static void setReader_PARM()
-        {
-            if (ReaderParameters == null) return;
-            ReaderParameters.Ip = "192.168.1.222";
-            /*
-            ** Set Channel Index, 16 in total, which represents different frequency (MHz). Namely,
-            ** [1: 920.375]
-            ** [2: 920.875]
-            ** ...... 
-            ** [16: 924.375]
-            */
-            ReaderParameters.ChannelIndex = 16;
-            // Power(dbm) [10 : 0.25 : 32.5], 90 different values in total
-            ReaderParameters.TransmitPower = 32.5;
-            /*
-            ** ModeIndex  NAME                  SENSITIVITY     INTERFERENCE TOLERANCE
-            **   0        Max Throughput        good            poor
-            **   1        Hybrid                good            good
-            **   2        Dense Reader (M=4)    better          excellent
-            **   3        Dense Reader (M=8)    best            excellent
-            **   4*       MaxMiller             better          good
-            **   1000     Auto set Dense Reader
-            **   1001     Auto set Single Reader
-            **   * MaxMiller is not available in all regions
-            */
-            ReaderParameters.ModeIndex = 1000;
-            // ?
-            ReaderParameters.HopTableIndex = 0;
-            // ?
-            ReaderParameters.PeriodicTriggerValue = 0;
-            
-            ReaderParameters.TagPopulation = 32;
-            ReaderParameters.Tari = 10;
-            // ?
-            ReaderParameters.TagTransitTime = 0;
-            // ?
-            ReaderParameters.ReaderSensitivity = 1;
-            // each value in the array map to Antenna 1, Antenna 2, Antenna 3, Antenna 4, respectively.
-            ReaderParameters.AntennaId = new[] { true, false, false, false };
         }
 
 
@@ -293,6 +251,7 @@ namespace TagReader.RFIDReader
         /// <param name="msg"></param>
         public static void reader_OnRoAccessReportReceived(MSG_RO_ACCESS_REPORT msg)
         {
+            if (FormTagReader.IsStopButtonClicked) return;
             // Report could be empty
             if (msg.TagReportData == null) return;
 
@@ -307,7 +266,6 @@ namespace TagReader.RFIDReader
                     MainForm.UpdateStatusBar_Report();
                 }));
                 
-
                 // just write out the EPC as a hex string for now. It is guaranteed to be
                 // in all LLRP reports regardless of default configuration
                 var data = "EPC: ";
@@ -339,6 +297,12 @@ namespace TagReader.RFIDReader
                 {
                     currTagStatus.TimeStamp = t.FirstSeenTimestampUTC.Microseconds;
                     data += "\ttime: " + currTagStatus.TimeStamp.ToString();
+
+                    var time = currTagStatus.TimeStamp;
+                    MainForm.Invoke(method: new Action(() =>
+                    {
+                        MainForm.UpdateStatusBar_Time(time);
+                    }));
                 }
                 if (t.LastSeenTimestampUTC != null)
                 {
@@ -952,7 +916,7 @@ namespace TagReader.RFIDReader
             cmd.TagInventoryStateAware = false;
 
             PARAM_ImpinjInventorySearchMode impinjSearchMod = new PARAM_ImpinjInventorySearchMode();
-            impinjSearchMod.InventorySearchMode = ENUM_ImpinjInventorySearchType.Dual_Target;
+            impinjSearchMod.InventorySearchMode = ReaderParameters.SearchType; // default: DualTarget
 
             /*
             // Duty Cycle
@@ -1047,7 +1011,6 @@ namespace TagReader.RFIDReader
 
             msg.ResetToFactoryDefault = false;
 
-
             MSG_ERROR_MESSAGE msg_err;
             MSG_SET_READER_CONFIG_RESPONSE rsp = Reader.SET_READER_CONFIG(msg, out msg_err, 2000);
             if (rsp != null)
@@ -1055,7 +1018,7 @@ namespace TagReader.RFIDReader
                 if (rsp.LLRPStatus.StatusCode != ENUM_StatusCode.M_Success)
                 {
                     WriteMessage(rsp.LLRPStatus.StatusCode.ToString());
-                    WriteMessage(rsp.LLRPStatus.ErrorDescription.ToString());
+                    WriteMessage(rsp.LLRPStatus.ErrorDescription);
                 }
                 WriteMessage(Resources.OK);
             }
@@ -1219,9 +1182,10 @@ namespace TagReader.RFIDReader
         }
         #endregion
 
+
         public static void Start()
         {
-            reader_AddSubscription();
+            ReaderWrapper.reader_AddSubscription();
             ReaderWrapper.ResetReaderToFactoryDefault();
             //ReaderWrapper.GetReaderCapabilities();
             ReaderWrapper.Enable_Impinj_Extensions();
@@ -1229,6 +1193,8 @@ namespace TagReader.RFIDReader
             ReaderWrapper.SetReaderConfig(); //SetReaderConfig_WithXML();
             ReaderWrapper.Add_RoSpec(); //Add_RoSpec_WithXML();
             ReaderWrapper.Enable_RoSpec();
+
+            WriteMessage("Reading...");
         }
 
         public static void Stop()
@@ -1238,6 +1204,8 @@ namespace TagReader.RFIDReader
 
             // clean up the Reader
             ReaderWrapper.reader_CleanSubscription();
+            WriteMessage("Stopped!");
         }
+
     } // end of ReaderWrapper
 }

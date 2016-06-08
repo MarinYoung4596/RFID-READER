@@ -157,4 +157,7 @@
   <data name="Initialize" xml:space="preserve">
     <value>Initializing...</value>
   </data>
+  <data name="IP" xml:space="preserve">
+    <value>192.168.1.222</value>
+  </data>
 </root>

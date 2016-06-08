@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.IO;
 using System.Windows.Forms;
 using TagReader.RFIDReader;
 using System.Windows.Forms.DataVisualization.Charting;
@@ -11,9 +12,10 @@ namespace TagReader
     {
         private static bool _isConnected2Reader;
         private static bool _isStartButtonClicked;
-        private static bool _isStopButtonClicked;
+        public  static bool IsStopButtonClicked;
         private static bool _isClearButtonClicked;
         public  static bool IsSettingsButtonClicked;
+        public  static bool IsSettigsWindowShowing;
         private static bool _showQuickAccessToolStrip = true;
         private static bool _showReaderSettingsToolStrip = true;
 
@@ -22,6 +24,8 @@ namespace TagReader
         {
             InitializeComponent();
             ReaderWrapper.MainForm = this;
+
+            ReaderWrapper.Initialize_Configuration();
 
             toolStripButton_Save.Enabled = false;
             toolStripButton_Connect.Enabled = true;
@@ -40,6 +44,7 @@ namespace TagReader
 
         #region Update Component
         private ulong _startTime;
+        private DateTime _startTimeDateTime;
         private int ConvertTime(ulong time)
         {
             var ts = time - _startTime;
@@ -101,30 +106,28 @@ namespace TagReader
                 if (_startTime == 0)
                 {
                     _startTime = time;
-                }
-                if (ConvertTime(time) < 0)
-                {
-                    _startTime = time;
+                    var dt = new DateTime(1970, 1, 1, 0, 0, 0, 0);
+                    _startTimeDateTime = dt.AddSeconds(Convert.ToDouble(_startTime / 1000000)).ToLocalTime();
                 }
 
                 var s = new Series
                 {
                     ChartType = SeriesChartType.FastLine,
-                    Name = epc
+                    Name = epc + "_" + antenna
                 };
                 chart_Rssi.Series.Add(s);
 
                 var s1 = new Series
                 {
                     ChartType = SeriesChartType.FastLine,
-                    Name = epc
+                    Name = epc + "_" + antenna
                 };
                 chart_Phase.Series.Add(s1);
 
                 var s2 = new Series
                 {
                     ChartType = SeriesChartType.FastLine,
-                    Name = epc
+                    Name = epc + "_" + antenna
                 };
                 chart_Doppler.Series.Add(s2);
 
@@ -141,18 +144,40 @@ namespace TagReader
             chart_Doppler.Series[seriesId].Points.AddXY(ConvertTime(time), tagStatus.DopplerShift);
             chart_Doppler.Series[seriesId].LegendText = epc.Substring(epc.Length - 4, 4) + "_" + antenna;
 
-            /*
-            if (ConvertTime(time) >= 20)
+            if (SettingsWindow.IsTimerModeActied)
             {
-                this.Invoke(new Action(() => { StopReceive(); }));
+                int t = ConvertTime(time);
+                Invoke(new Action(() =>
+                {
+                    UpdateStatusBar_ProgressBar(ref t);
+                }));
+                
+                if (t >= ReaderWrapper.ReaderParameters.Duration)
+                {
+                    StopReceive();
+
+                    if (SettingsWindow.IsAutoSaveChecked)
+                    {
+                        var fpath = @"C:\Users\Marin\Desktop\";
+                        if (!Directory.Exists(fpath))
+                            Directory.CreateDirectory(fpath);
+
+                        var dt = DateTime.Now;
+                        var strCurrentTime = dt.ToString("yyyyMMdd_HHmmss");
+                        var fname = strCurrentTime + ".csv";
+                        var csvWriter = new CsvStreamWriter(fpath + fname);
+                        ReaderWrapper.SaveData(csvWriter);
+                    }
+                }
             }
-            */
         }
 
 
-        public void UpdateStatusBar_ProgressBar()
+        public void UpdateStatusBar_ProgressBar(ref int val)
         {
-            
+            toolStripProgressBar.Value = val;
+            if (toolStripProgressBar.Value < toolStripProgressBar.Maximum)
+                toolStripProgressBar.PerformStep();
         }
 
         public void UpdateStatusBar_Message(ref string str)
@@ -162,7 +187,7 @@ namespace TagReader
 
         public void UpdateStatusBar_Event()
         {
-            toolStripStatusLabel_NameEvent.Text = ReaderWrapper.TotalEvent.ToString();
+            toolStripStatusLabel_TotalEvent.Text = ReaderWrapper.TotalEvent.ToString();
         }
 
         public void UpdateStatusBar_Report()
@@ -170,12 +195,14 @@ namespace TagReader
             toolStripStatusLabel_TotalReport.Text = ReaderWrapper.TotalReport.ToString();
         }
 
-        public void UpdateStatusBar_Time()
+        public void UpdateStatusBar_Time(ulong timestamp)
         {
-            //toolStripStatusLabel_RunTime.Text = 
+            System.DateTime dt = new DateTime(1970, 1, 1, 0, 0, 0, 0);
+            dt = dt.AddSeconds(Convert.ToDouble(timestamp / 1000000)).ToLocalTime();
+            
+            TimeSpan time = dt - _startTimeDateTime;
+            toolStripStatusLabel_RunTime.Text = time.Hours + @":" + time.Minutes + @":" + time.Seconds;
         }
-
-
         #endregion
 
         private void Form_TagReader_Resize(object sender, EventArgs e)
@@ -200,8 +227,6 @@ namespace TagReader
 
         private void button_Connect_Click(object sender, EventArgs e)
         {
-            ReaderWrapper.Initialize_Configuration();
-            ReaderWrapper.setReader_PARM(); // default
             if (IsSettingsButtonClicked)
             {
                 toolStripTextBox_Address.Text = ReaderWrapper.ReaderParameters.Ip;
@@ -224,7 +249,7 @@ namespace TagReader
                 if (txPower < 10 || txPower > 32.5)
                 {
                     MessageBox.Show("Invalid Power!");
-                }
+                }   
 
                 ReaderWrapper.ReaderParameters.Ip = ipAddress;
                 ReaderWrapper.ReaderParameters.TransmitPower = txPower;
@@ -234,11 +259,13 @@ namespace TagReader
 
             _isConnected2Reader = ReaderWrapper.ConnectToReader();
 
-            MessageBox.Show(_isConnected2Reader ? "Successfully Connected!" : "Connect Failed!");
+            //MessageBox.Show(_isConnected2Reader ? "Successfully Connected!" : "Connect Failed!");
 
             if (_isConnected2Reader)
             {
-                toolStrip_ReaderSettings.Enabled = false;
+                toolStripButton_Settings.Enabled = false;
+                ToolStripMenuItem_Settings.Enabled = false;
+
                 toolStripButton_Connect.Enabled = false;
                 ToolStripMenuItem_Connect.Enabled = false;
 
@@ -247,66 +274,72 @@ namespace TagReader
             }
         }
 
+        private void StartReceive()
+        {
+            ReaderWrapper.Start();
+
+            _startTime = 0;
+            _isStartButtonClicked = true;
+            IsStopButtonClicked = false;
+
+            toolStripButton_Start.Enabled = false;
+            ToolStripMenuItem_Start.Enabled = false;
+
+            toolStripButton_Stop.Enabled = true;
+            ToolStripMenuItem_Stop.Enabled = true;
+
+            //toolStripButton_Clear.Enabled = true;
+
+            toolStripButton_Settings.Enabled = false;
+            ToolStripMenuItem_Settings.Enabled = false;
+        }
+
         private void button_Start_Click(object sender, EventArgs e)
         {
             if (_isConnected2Reader)
             {
+                StartReceive();
 
-                if (!_isStartButtonClicked)
+                if (SettingsWindow.IsTimerModeActied)
                 {
-                    ReaderWrapper.ResetReaderToFactoryDefault();
-                    ReaderWrapper.GetReaderCapabilities();
+                    toolStripProgressBar.Maximum = ReaderWrapper.ReaderParameters.Duration;
+                    toolStripProgressBar.Step = 1;
                 }
-                ReaderWrapper.Enable_Impinj_Extensions();
-                ReaderWrapper.SetReaderConfig(); //SetReaderConfig_WithXML();
-                ReaderWrapper.reader_AddSubscription();
-                ReaderWrapper.Add_RoSpec(); //Add_RoSpec_WithXML();
-                ReaderWrapper.Enable_RoSpec();
-                
-                _startTime = 0;
-                _isStartButtonClicked = true;
-                _isStopButtonClicked = false;
-
-                toolStripButton_Start.Enabled = false;
-                ToolStripMenuItem_Start.Enabled = false;
-
-                toolStripButton_Stop.Enabled = true;
-                ToolStripMenuItem_Stop.Enabled = true;
-
-                //toolStripButton_Clear.Enabled = true;
-
-                toolStripButton_Settings.Enabled = false;
-                ToolStripMenuItem_Settings.Enabled = false;
             }
+        }
+
+        private void StopReceive()
+        {
+            IsStopButtonClicked = true;
+            IsSettingsButtonClicked = false;
+            _isClearButtonClicked = false;
+
+            ReaderWrapper.Stop();
+
+            chart_Rssi.EndInit();
+            chart_Phase.EndInit();
+            chart_Doppler.EndInit();
+
+            toolStripButton_Stop.Enabled = false;
+            ToolStripMenuItem_Stop.Enabled = false;
+
+            // 
+            //toolStripButton_Start.Enabled = true;
+            //ToolStripMenuItem_Start.Enabled = true;
+
+            toolStripButton_Save.Enabled = true;
+            ToolStripMenuItem_Save.Enabled = true;
+            toolStripButton_Settings.Enabled = true;
+            ToolStripMenuItem_Settings.Enabled = true;
+
+            toolStripButton_Clear.Enabled = true;
         }
 
         private void button_Stop_Click(object sender, EventArgs e)
         {
             if (_isConnected2Reader && _isStartButtonClicked)
             {
-                ReaderWrapper.Stop();
-
-                chart_Rssi.EndInit();
-                chart_Phase.EndInit();
-                chart_Doppler.EndInit();
-
-                //_isStartButtonClicked = false;
-                _isStopButtonClicked = true;
-                IsSettingsButtonClicked = false;
-
-                toolStripButton_Stop.Enabled = false;
-                ToolStripMenuItem_Stop.Enabled = false;
-
-                // 
-                //toolStripButton_Start.Enabled = true;
-                //ToolStripMenuItem_Start.Enabled = true;
-
-                toolStripButton_Save.Enabled = true;
-                ToolStripMenuItem_Save.Enabled = true;
-                toolStripButton_Settings.Enabled = true;
-                ToolStripMenuItem_Settings.Enabled = true;
-
-                toolStripButton_Clear.Enabled = true;
+                StopReceive();
             }
         }
 
@@ -319,8 +352,6 @@ namespace TagReader
                 RestoreDirectory = true,
                 DefaultExt = ".csv"
             };
-
-
             if (sfd.ShowDialog() == DialogResult.OK)
             {
                 var fpath = sfd.FileName;
@@ -331,13 +362,15 @@ namespace TagReader
 
         private void button_Clear_Click(object sender, EventArgs e)
         {
-            if (_isStopButtonClicked)
+            if (IsStopButtonClicked)
             {
                 listView_Data.Items.Clear(); // clean up the Reader
                 chart_Rssi.Dispose();
                 chart_Phase.Dispose();
                 chart_Doppler.Dispose();
 
+                var a = 0;
+                UpdateStatusBar_ProgressBar(ref a);
                 _isClearButtonClicked = true;
             }
         }
@@ -349,12 +382,13 @@ namespace TagReader
 
         private void button_Settings_Click(object sender, EventArgs e)
         {
-            if (!IsSettingsButtonClicked)
+            if (!IsSettigsWindowShowing)
             {
                 var x = new SettingsWindow();
                 x.Show();
 
                 IsSettingsButtonClicked = true;
+                IsSettigsWindowShowing = true;
             }
         }
 

@@ -119,6 +119,15 @@ namespace TagReader.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to 192.168.1.222.
+        /// </summary>
+        internal static string IP {
+            get {
+                return ResourceManager.GetString("IP", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to OK!\n.
         /// </summary>
         internal static string OK {

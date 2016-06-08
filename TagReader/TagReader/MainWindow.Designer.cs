@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Windows.Forms;
 using System.Windows.Forms.DataVisualization.Charting;
+using TagReader.Properties;
 
 namespace TagReader
 {
@@ -85,7 +86,7 @@ namespace TagReader
             this.toolStripButton_Settings = new System.Windows.Forms.ToolStripButton();
             this.statusStrip1 = new System.Windows.Forms.StatusStrip();
             this.toolStripStatusLabel_Message = new System.Windows.Forms.ToolStripStatusLabel();
-            this.toolStripProgressBar1 = new System.Windows.Forms.ToolStripProgressBar();
+            this.toolStripProgressBar = new System.Windows.Forms.ToolStripProgressBar();
             this.toolStripStatusLabel_NameReport = new System.Windows.Forms.ToolStripStatusLabel();
             this.toolStripStatusLabel_TotalReport = new System.Windows.Forms.ToolStripStatusLabel();
             this.toolStripStatusLabel_NameEvent = new System.Windows.Forms.ToolStripStatusLabel();
@@ -202,7 +203,7 @@ namespace TagReader
             this.chart_Rssi.TabIndex = 13;
             this.chart_Rssi.Text = "chart_Rssi";
             title1.Name = "Title_Rssi";
-            title1.Text = "Rssi Changed Tendency";
+            title1.Text = "RSSI";
             this.chart_Rssi.Titles.Add(title1);
             // 
             // chart_Phase
@@ -231,7 +232,7 @@ namespace TagReader
             this.chart_Phase.TabIndex = 14;
             this.chart_Phase.Text = "chart_Phase";
             title2.Name = "Title_Phase";
-            title2.Text = "Phase Changed Tendency";
+            title2.Text = "Phase";
             this.chart_Phase.Titles.Add(title2);
             // 
             // chart_Doppler
@@ -259,7 +260,7 @@ namespace TagReader
             this.chart_Doppler.TabIndex = 15;
             this.chart_Doppler.Text = "chart_Doppler";
             title3.Name = "Title_Doppler";
-            title3.Text = "Doppler Changed Tendency";
+            title3.Text = "Doppler Shift";
             this.chart_Doppler.Titles.Add(title3);
             // 
             // label_EPC
@@ -524,7 +525,7 @@ namespace TagReader
             // 
             this.statusStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.toolStripStatusLabel_Message,
-            this.toolStripProgressBar1,
+            this.toolStripProgressBar,
             this.toolStripStatusLabel_NameReport,
             this.toolStripStatusLabel_TotalReport,
             this.toolStripStatusLabel_NameEvent,
@@ -541,13 +542,12 @@ namespace TagReader
             this.toolStripStatusLabel_Message.Name = "toolStripStatusLabel_Message";
             this.toolStripStatusLabel_Message.Size = new System.Drawing.Size(537, 17);
             this.toolStripStatusLabel_Message.Spring = true;
-            this.toolStripStatusLabel_Message.Text = "message";
             this.toolStripStatusLabel_Message.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             // 
-            // toolStripProgressBar1
+            // toolStripProgressBar
             // 
-            this.toolStripProgressBar1.Name = "toolStripProgressBar1";
-            this.toolStripProgressBar1.Size = new System.Drawing.Size(100, 16);
+            this.toolStripProgressBar.Name = "toolStripProgressBar";
+            this.toolStripProgressBar.Size = new System.Drawing.Size(100, 16);
             // 
             // toolStripStatusLabel_NameReport
             // 
@@ -733,7 +733,7 @@ namespace TagReader
         private ToolStripSeparator toolStripSeparator2;
         public ToolStrip toolStrip_QuickAccess;
         private StatusStrip statusStrip1;
-        private ToolStripProgressBar toolStripProgressBar1;
+        private ToolStripProgressBar toolStripProgressBar;
         private ToolStripStatusLabel toolStripStatusLabel_Message;
         private ToolStrip toolStrip_ReaderSettings;
         private ToolStripLabel toolStripLabel_Address;
